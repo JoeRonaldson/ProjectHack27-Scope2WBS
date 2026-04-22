@@ -46,8 +46,8 @@ textarea {
 }
 
 .topbarTeamsButton {
-  width: 24px;
-  height: 24px;
+  width: 56px;
+  height: 56px;
   border: 0;
   background: transparent;
   padding: 0;
@@ -66,8 +66,8 @@ textarea {
 }
 
 .topbarTeamsLogo {
-  width: 21px;
-  height: 21px;
+  width: 32px;
+  height: 32px;
   object-fit: contain;
   display: block;
 }
@@ -990,6 +990,28 @@ pre {
   border-radius: 8px;
   padding: 12px;
   background: #faf9f8;
+}
+
+.placeholderSkillButton {
+  border: 1px solid #5b5fc7;
+  background: #5b5fc7;
+  color: #ffffff;
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-bottom: 12px;
+}
+
+.placeholderSkillButton:hover {
+  background: #4f52b2;
+  border-color: #4f52b2;
+}
+
+.placeholderSkillButton:active {
+  background: #44479d;
+  border-color: #44479d;
 }
 
 .skillsList {

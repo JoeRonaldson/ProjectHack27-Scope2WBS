@@ -456,34 +456,6 @@ function App() {
         </div>
 
         <div className="sidebarBody">
-          <button type="button" className="sidebarListItem">
-            <span className="listIcon" aria-hidden="true">
-              <svg viewBox="0 0 24 24">
-                <path d="M4 7.5A2.5 2.5 0 0 1 6.5 5h6A2.5 2.5 0 0 1 15 7.5v6a2.5 2.5 0 0 1-2.5 2.5h-6A2.5 2.5 0 0 1 4 13.5v-6zm9-1A2.5 2.5 0 0 1 15.5 4h2A2.5 2.5 0 0 1 20 6.5v2A2.5 2.5 0 0 1 17.5 11h-2A2.5 2.5 0 0 1 13 8.5v-2zm1.5 9A2.5 2.5 0 0 1 17 13h2a2.5 2.5 0 0 1 2.5 2.5v2A2.5 2.5 0 0 1 19 20h-2a2.5 2.5 0 0 1-2.5-2.5v-2z" />
-              </svg>
-            </span>
-            <span>Copilot</span>
-          </button>
-
-          <section className="sidebarSection">
-            <button type="button" className="sectionTitle">
-              <span className="chevron" aria-hidden="true">
-                <svg viewBox="0 0 24 24">
-                  <path d="M8.2 6.8L13.4 12l-5.2 5.2 1.4 1.4 6.6-6.6-6.6-6.6z" />
-                </svg>
-              </span>
-              <span>Quick views</span>
-            </button>
-            <button type="button" className="sidebarListItem indented">
-              <span className="listIcon" aria-hidden="true">
-                <svg viewBox="0 0 24 24">
-                  <path d="M7 4h10a2 2 0 0 1 2 2v12l-4-2.6L11 18l-4-2.6L3 18V6a2 2 0 0 1 2-2h2z" />
-                </svg>
-              </span>
-              <span>Drafts</span>
-            </button>
-          </section>
-
           <section className="sidebarSection">
             <button type="button" className="sectionTitle">
               <span className="chevron" aria-hidden="true">
@@ -508,7 +480,7 @@ function App() {
             <div className="treeNode root">
               <span className="chevron" aria-hidden="true">
                 <svg viewBox="0 0 24 24">
-                  <path d="M8.2 6.8L13.4 12l-5.2 5.2 1.4 1.4 6.6-6.6-6.6-6.6z" />
+                  <path d="M7.4 9.2L12 13.8l4.6-4.6 1.4 1.4-6 6-6-6z" />
                 </svg>
               </span>
               <span className="teamBadge">PH27</span>
@@ -521,13 +493,6 @@ function App() {
 
             <button type="button" className="treeLeaf active">
               Team 2A - Scope2WBS
-            </button>
-
-            <button type="button" className="sidebarLinkButton">
-              See all channels
-            </button>
-            <button type="button" className="sidebarLinkButton">
-              See all your teams
             </button>
           </section>
         </div>
@@ -645,7 +610,6 @@ function App() {
                       <AssistantAvatar />
                       <div className="bubble toolCallBubble">
                         <p className="authorLine">{ASSISTANT_NAME}</p>
-                        <p className="toolCallLine">Tool call: loaded skill context</p>
                         <div className="skillUsageLine">
                           <span>Skills:</span>
                           {message.toolCallSkills.map((skill) => (
@@ -755,7 +719,7 @@ function App() {
                   className={`settingsNavButton ${settingsTab === "systemPrompt" ? "active" : ""}`}
                   onClick={() => setSettingsTab("systemPrompt")}
                 >
-                  System prompt
+                  Prompt
                 </button>
                 <button
                   type="button"
@@ -772,7 +736,7 @@ function App() {
                     <p className="settingsHint">
                       Configure workflow defaults used for every run. This prompt will be used for each request.
                     </p>
-                    <label htmlFor="settings-prompt">System prompt</label>
+                    <label htmlFor="settings-prompt">Prompt</label>
                     <textarea
                       id="settings-prompt"
                       value={systemPrompt}
@@ -783,8 +747,11 @@ function App() {
                 ) : (
                   <div className="settingsSection">
                     <p className="settingsHint">
-                      Built-in skills are loaded automatically when the model decides extra context is needed.
+                      Create a skill that captures the SOP for developing Work Break Down Structures for each project type.
                     </p>
+                    <button type="button" className="placeholderSkillButton">
+                      Create Skill
+                    </button>
                     {availableSkills.length ? (
                       <ul className="skillsList">
                         {availableSkills.map((skill) => (
