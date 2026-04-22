@@ -65,6 +65,13 @@ textarea {
   height: 21px;
 }
 
+.topbarTeamsLogo {
+  width: 21px;
+  height: 21px;
+  object-fit: contain;
+  display: block;
+}
+
 .topbarSearch {
   height: 32px;
   border: 1px solid #e1dfdd;
@@ -713,6 +720,8 @@ textarea {
   margin: 0;
   font-size: 14px;
   color: #252423;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
 }
 
 .bubble a {

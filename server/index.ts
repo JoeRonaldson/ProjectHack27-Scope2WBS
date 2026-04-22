@@ -5,7 +5,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { getModelRuntimeConfig, getPublicModelRuntimeConfig } from "./model-config.js";
 import { DEFAULT_SYSTEM_PROMPT } from "./prompts.js";
-import { runWorkflow } from "./workflow.js";
+import { runWorkflow, type WorkflowStage } from "./workflow.js";
 
 dotenv.config();
 
@@ -36,8 +36,27 @@ app.post("/api/workflow", async (req, res) => {
       typeof req.body?.model === "string" && req.body.model.trim()
         ? req.body.model
         : getModelRuntimeConfig().model;
+    const stage: WorkflowStage =
+      req.body?.stage === "awaiting-clarification" || req.body?.stage === "wbs-ready"
+        ? req.body.stage
+        : "initial";
+    const initialScope =
+      typeof req.body?.initialScope === "string" && req.body.initialScope.trim()
+        ? req.body.initialScope
+        : null;
+    const latestMermaid =
+      typeof req.body?.latestMermaid === "string" && req.body.latestMermaid.trim()
+        ? req.body.latestMermaid
+        : null;
 
-    const result = await runWorkflow(input, systemPrompt, model);
+    const result = await runWorkflow({
+      input,
+      systemPrompt,
+      model,
+      stage,
+      initialScope,
+      latestMermaid
+    });
     res.json(result);
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unexpected server error";

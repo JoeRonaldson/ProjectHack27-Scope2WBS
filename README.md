@@ -130,7 +130,10 @@ Request:
 {
   "input": "your scope text",
   "systemPrompt": "optional custom prompt",
-  "model": "optional model name"
+  "model": "optional model name",
+  "stage": "initial | awaiting-clarification | wbs-ready",
+  "initialScope": "persisted first scope message",
+  "latestMermaid": "most recent WBS mermaid text"
 }
 ```
 
@@ -138,10 +141,15 @@ Response:
 
 ```json
 {
+  "mode": "clarification | wbs | chat",
+  "assistantText": "assistant text for questions/chat/status",
   "outputText": "raw model output",
   "mermaidCode": "graph TD ...",
   "wbsRows": [
     { "level": 1, "code": "1", "name": "Project WBS" }
-  ]
+  ],
+  "nextStage": "initial | awaiting-clarification | wbs-ready",
+  "initialScope": "persisted first scope message",
+  "latestMermaid": "most recent WBS mermaid text or null"
 }
 ```

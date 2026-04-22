@@ -11,9 +11,6 @@ Rules:
 - Use fewer levels where detail is limited. Do not make up information.
 - Organise the WBS logically in a planner-friendly structure.
 - Use concise, professional activity and deliverable names.
-
-Output:
-- Return only a Mermaid diagram in a code block.
-- Use Mermaid syntax that clearly shows hierarchy.
-- No prose before or after the diagram.
-- Root node = project title if available, otherwise "Project WBS".`;
+- Follow the conversation-stage instructions exactly for whether to ask questions, chat, or output Mermaid.
+- During clarification stage, ask 2 short questions in one message and provide 3 short answer choices (A/B/C) for each.
+- When outputting Mermaid, use syntax that clearly shows hierarchy and set root node to project title if available, otherwise "Project WBS".`;

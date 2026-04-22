@@ -1,5 +1,6 @@
 import { FormEvent, KeyboardEvent, MouseEvent, useEffect, useRef, useState } from "react";
 import scope2wbsLogo from "./assets/scope2wbs-full-logo.svg";
+import teamsTopbarLogo from "../Microsoft_Teams-Logo.wine.png";
 
 type WbsRow = {
   level: number;
@@ -7,10 +8,18 @@ type WbsRow = {
   name: string;
 };
 
+type WorkflowStage = "initial" | "awaiting-clarification" | "wbs-ready";
+type WorkflowMode = "clarification" | "wbs" | "chat";
+
 type WorkflowResponse = {
+  mode: WorkflowMode;
+  assistantText: string;
   outputText: string;
   mermaidCode: string | null;
   wbsRows: WbsRow[];
+  nextStage: WorkflowStage;
+  initialScope: string;
+  latestMermaid: string | null;
 };
 
 type ChatMessage =
@@ -36,28 +45,15 @@ Rules:
 - Base the WBS only on the content of the document.
 - Do not infer, assume, or add scope not explicitly stated or clearly supported.
 - Create up to 4 WBS levels where sufficient detail exists (1.1.2.1).
-- Use fewer levels where detail is limited.
+- Use fewer levels where detail is limited. Do not make up information.
 - Organise the WBS logically in a planner-friendly structure.
-- Use concise, professional activity and deliverable names.
+- Use concise, professional activity and deliverable names. Use the scope document as naming inspirations
+- Follow the conversation-stage instructions exactly for whether to ask questions, chat, or output Mermaid.
+- During clarification stage, ask 2 short questions in one message and provide 3 short answer choices (A/B/C) for each. The questions should be about the scope of the project not the type of output.
+- When outputting Mermaid, use syntax that clearly shows hierarchy and set root node to project title if available, otherwise "Project WBS".`;
 
-Output:
-- Return only a Mermaid diagram in a code block.
-- Use Mermaid syntax that clearly shows hierarchy.
-- No prose before or after the diagram.
-- Root node = project title if available, otherwise "Project WBS".`;
 
 const ASSISTANT_NAME = "Scope2WBS";
-
-function TeamsMark() {
-  return (
-    <svg viewBox="0 0 48 48" aria-hidden="true">
-      <circle cx="12" cy="15" r="5" fill="#7b83eb" />
-      <circle cx="38" cy="15" r="5" fill="#7b83eb" />
-      <rect x="7" y="17" width="34" height="24" rx="7" fill="#5b5fc7" />
-      <path d="M15 22h18v4h-7v11h-4V26h-7z" fill="#ffffff" />
-    </svg>
-  );
-}
 
 function AssistantAvatar() {
   return (
@@ -74,6 +70,9 @@ function App() {
   const [settingsTab, setSettingsTab] = useState<"systemPrompt" | "skills">("systemPrompt");
   const [loading, setLoading] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [workflowStage, setWorkflowStage] = useState<WorkflowStage>("initial");
+  const [initialScope, setInitialScope] = useState("");
+  const [latestMermaid, setLatestMermaid] = useState<string | null>(null);
   const messageStreamRef = useRef<HTMLDivElement | null>(null);
   const composerInputRef = useRef<HTMLTextAreaElement | null>(null);
 
@@ -116,6 +115,12 @@ function App() {
     setLoading(true);
     const userMessageId = `user-${Date.now()}`;
     const assistantMessageId = `assistant-${Date.now()}`;
+    const pendingText =
+      workflowStage === "initial"
+        ? "Reviewing scope and drafting clarifying questions..."
+        : workflowStage === "awaiting-clarification"
+          ? "Generating WBS from your clarifications..."
+          : "Working on your follow-up...";
     setMessages((previous) => [
       ...previous,
       {
@@ -127,7 +132,7 @@ function App() {
         id: assistantMessageId,
         role: "assistant",
         pending: true,
-        text: "Generating WBS..."
+        text: pendingText
       }
     ]);
     setInput("");
@@ -140,7 +145,10 @@ function App() {
         },
         body: JSON.stringify({
           input: trimmedInput,
-          systemPrompt
+          systemPrompt,
+          stage: workflowStage,
+          initialScope: initialScope || null,
+          latestMermaid
         })
       });
 
@@ -151,6 +159,9 @@ function App() {
       }
 
       const workflowResult = data as WorkflowResponse;
+      setWorkflowStage(workflowResult.nextStage);
+      setInitialScope(workflowResult.initialScope);
+      setLatestMermaid(workflowResult.latestMermaid);
       setMessages((previous) =>
         previous.map((message) =>
           message.id === assistantMessageId
@@ -223,7 +234,7 @@ function App() {
     <main className="teamsShell">
       <header className="globalTopbar" aria-label="Global app bar">
         <button type="button" className="topbarTeamsButton" aria-label="Microsoft Teams home">
-          <TeamsMark />
+          <img src={teamsTopbarLogo} alt="Microsoft Teams logo" className="topbarTeamsLogo" />
         </button>
 
         <button type="button" className="topbarSearch" aria-label="Search">
@@ -515,21 +526,27 @@ function App() {
                 }
                 const csvData = createCsvData(result.wbsRows);
                 const mermaidLink = result.mermaidCode ? createMermaidRenderLink(result.mermaidCode) : null;
+                const hasWbsOutput = Boolean(result.mermaidCode);
                 return (
                   <article key={message.id} className="chatMessage left">
                     <AssistantAvatar />
                     <div className="bubble">
                       <p className="authorLine">{ASSISTANT_NAME}</p>
+                      {result.assistantText ? <p>{result.assistantText}</p> : null}
                       {mermaidLink ? (
-                        <a href={mermaidLink} target="_blank" rel="noreferrer">
-                          Open rendered Mermaid chart
-                        </a>
-                      ) : (
-                        <p>No Mermaid diagram detected.</p>
-                      )}
-                      <a href={`data:text/csv;charset=utf-8,${encodeURIComponent(csvData)}`} download="output.csv">
-                        Export CSV
-                      </a>
+                        <>
+                          <a href={mermaidLink} target="_blank" rel="noreferrer">
+                            Open rendered Mermaid chart
+                          </a>
+                          <a
+                            href={`data:text/csv;charset=utf-8,${encodeURIComponent(csvData)}`}
+                            download="output.csv"
+                          >
+                            Export CSV
+                          </a>
+                        </>
+                      ) : null}
+                      {!hasWbsOutput && result.mode === "wbs" ? <p>No Mermaid diagram detected.</p> : null}
                     </div>
                   </article>
                 );
