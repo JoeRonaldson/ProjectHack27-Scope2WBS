@@ -156,13 +156,24 @@ export async function resolveSkillToolCall(
 }
 
 async function resolveSkillFilePath(fileName: string): Promise<string> {
-  const primaryPath = path.resolve(SKILLS_DIR, fileName);
-  try {
-    await access(primaryPath);
-    return primaryPath;
-  } catch {
-    const fallbackPath = path.resolve(FALLBACK_SKILLS_DIR, fileName);
-    await access(fallbackPath);
-    return fallbackPath;
+  const candidateDirectories = [
+    SKILLS_DIR,
+    FALLBACK_SKILLS_DIR,
+    path.resolve(process.cwd(), "dist-server/skills"),
+    path.resolve(process.cwd(), "server/skills")
+  ];
+
+  for (const directory of candidateDirectories) {
+    const candidatePath = path.resolve(directory, fileName);
+    try {
+      await access(candidatePath);
+      return candidatePath;
+    } catch {
+      // Try next candidate path.
+    }
   }
+
+  throw new Error(
+    `Skill file "${fileName}" was not found. Checked: ${candidateDirectories.join(", ")}`
+  );
 }
