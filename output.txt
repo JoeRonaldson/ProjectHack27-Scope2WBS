@@ -1,0 +1,41 @@
+```mermaid
+graph TB
+  R["Decommissioning and Removal of Drainage Pipeline from Plant to Outflow"]
+
+  R --> N1["1 Planning & Permitting"]
+  N1 --> N1_1["1.1 Detailed decommissioning plan & design"]
+  N1 --> N1_2["1.2 Surveys & investigations"]
+  N1 --> N1_3["1.3 Regulatory approvals & permits"]
+  N1 --> N1_4["1.4 Utility clearances & road opening permits"]
+  N1 --> N1_5["1.5 Land access agreements"]
+
+  R --> N2["2 Site Mobilization & Enabling Works"]
+  N2 --> N2_1["2.1 Site mobilisation & setup"]
+  N2 --> N2_2["2.2 Pipeline drained, cleaned & isolated (pre-work)"]
+  N2 --> N2_3["2.3 Temporary works & traffic management"]
+
+  R --> N3["3 Pipeline Decommissioning & Removal"]
+  N3 --> N3_1["3.1 Excavation and pipe removal"]
+  N3 --> N3_2["3.2 Removal of supporting structures & associated fittings"]
+
+  R --> N4["4 Environmental Management & Remediation"]
+  N4 --> N4_1["4.1 Contamination testing & monitoring"]
+  N4 --> N4_2["4.2 Ground/soil remediation (where required)"]
+  N4 --> N4_3["4.3 Waste classification, transport & disposal"]
+  N4 --> N4_4["4.4 Disposal facility coordination"]
+
+  R --> N5["5 Restoration & Reinstatement"]
+  N5 --> N5_1["5.1 Surface reinstatement (roads, land, landscaping)"]
+  N5 --> N5_2["5.2 Reinstatement to authority standards"]
+
+  R --> N6["6 Project Close-out & Documentation"]
+  N6 --> N6_1["6.1 Final project report & regulatory close-out certification"]
+  N6 --> N6_2["6.2 As-built records & project documentation"]
+  N6 --> N6_3["6.3 Stakeholder acceptance & sign-off"]
+
+  R --> N7["7 Project Management, H&S & Risk"]
+  N7 --> N7_1["7.1 Risk management & contingency planning"]
+  N7 --> N7_2["7.2 Health & safety management (confined spaces, heavy lifting)"]
+  N7 --> N7_3["7.3 Community engagement & complaints management"]
+  N7 --> N7_4["7.4 Cost control & budget tracking"]
+```

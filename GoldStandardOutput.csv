@@ -1,0 +1,32 @@
+WBS Level,WBS Code,WBS Name
+1,1,Decommissioning and Removal of Drainage Pipeline from Plant to Outflow
+2,1.1,1 Planning & Permitting
+3,1.1.1,1.1 Detailed decommissioning plan & design
+3,1.1.2,1.2 Surveys & investigations
+3,1.1.3,1.3 Regulatory approvals & permits
+3,1.1.4,1.4 Utility clearances & road opening permits
+3,1.1.5,1.5 Land access agreements
+2,1.2,2 Site Mobilization & Enabling Works
+3,1.2.1,2.1 Site mobilisation & setup
+3,1.2.2,"2.2 Pipeline drained, cleaned & isolated (pre-work)"
+3,1.2.3,2.3 Temporary works & traffic management
+2,1.3,3 Pipeline Decommissioning & Removal
+3,1.3.1,3.1 Excavation and pipe removal
+3,1.3.2,3.2 Removal of supporting structures & associated fittings
+2,1.4,4 Environmental Management & Remediation
+3,1.4.1,4.1 Contamination testing & monitoring
+3,1.4.2,4.2 Ground/soil remediation (where required)
+3,1.4.3,"4.3 Waste classification, transport & disposal"
+3,1.4.4,4.4 Disposal facility coordination
+2,1.5,5 Restoration & Reinstatement
+3,1.5.1,"5.1 Surface reinstatement (roads, land, landscaping)"
+3,1.5.2,5.2 Reinstatement to authority standards
+2,1.6,6 Project Close-out & Documentation
+3,1.6.1,6.1 Final project report & regulatory close-out certification
+3,1.6.2,6.2 As-built records & project documentation
+3,1.6.3,6.3 Stakeholder acceptance & sign-off
+2,1.7,"7 Project Management, H&S & Risk"
+3,1.7.1,7.1 Risk management & contingency planning
+3,1.7.2,"7.2 Health & safety management (confined spaces, heavy lifting)"
+3,1.7.3,7.3 Community engagement & complaints management
+3,1.7.4,7.4 Cost control & budget tracking

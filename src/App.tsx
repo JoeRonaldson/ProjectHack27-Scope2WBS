@@ -1,0 +1,610 @@
+import { FormEvent, KeyboardEvent, MouseEvent, useEffect, useRef, useState } from "react";
+import scope2wbsLogo from "./assets/scope2wbs-full-logo.svg";
+
+type WbsRow = {
+  level: number;
+  code: string;
+  name: string;
+};
+
+type WorkflowResponse = {
+  outputText: string;
+  mermaidCode: string | null;
+  wbsRows: WbsRow[];
+};
+
+type ChatMessage =
+  | {
+      id: string;
+      role: "user";
+      text: string;
+    }
+  | {
+      id: string;
+      role: "assistant";
+      result?: WorkflowResponse;
+      text?: string;
+      pending?: boolean;
+      error?: boolean;
+    };
+
+const DEFAULT_PROMPT = `You are a highly experienced Senior Planner in Project Controls.
+
+The user will provide a text document. Your role is to convert that document into a Work Breakdown Structure (WBS).
+
+Rules:
+- Base the WBS only on the content of the document.
+- Do not infer, assume, or add scope not explicitly stated or clearly supported.
+- Create up to 4 WBS levels where sufficient detail exists (1.1.2.1).
+- Use fewer levels where detail is limited.
+- Organise the WBS logically in a planner-friendly structure.
+- Use concise, professional activity and deliverable names.
+
+Output:
+- Return only a Mermaid diagram in a code block.
+- Use Mermaid syntax that clearly shows hierarchy.
+- No prose before or after the diagram.
+- Root node = project title if available, otherwise "Project WBS".`;
+
+const ASSISTANT_NAME = "Scope2WBS";
+
+function TeamsMark() {
+  return (
+    <svg viewBox="0 0 48 48" aria-hidden="true">
+      <circle cx="12" cy="15" r="5" fill="#7b83eb" />
+      <circle cx="38" cy="15" r="5" fill="#7b83eb" />
+      <rect x="7" y="17" width="34" height="24" rx="7" fill="#5b5fc7" />
+      <path d="M15 22h18v4h-7v11h-4V26h-7z" fill="#ffffff" />
+    </svg>
+  );
+}
+
+function AssistantAvatar() {
+  return (
+    <div className="avatar assistantAvatar">
+      <img src={scope2wbsLogo} alt="Scope2WBS full logo" />
+    </div>
+  );
+}
+
+function App() {
+  const [input, setInput] = useState("");
+  const [systemPrompt, setSystemPrompt] = useState(DEFAULT_PROMPT);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const messageStreamRef = useRef<HTMLDivElement | null>(null);
+  const composerInputRef = useRef<HTMLTextAreaElement | null>(null);
+
+  useEffect(() => {
+    const messageStream = messageStreamRef.current;
+    if (!messageStream) {
+      return;
+    }
+    messageStream.scrollTop = messageStream.scrollHeight;
+  }, [messages]);
+
+  const createCsvData = (rows: WbsRow[]) => {
+    if (!rows.length) {
+      return "WBS Level,WBS Code,WBS Name\n";
+    }
+    const csvRows = rows.map((row) => {
+      const escapedName = row.name.includes(",") ? `"${row.name.replace(/"/g, "\"\"")}"` : row.name;
+      return `${row.level},${row.code},${escapedName}`;
+    });
+    return ["WBS Level,WBS Code,WBS Name", ...csvRows].join("\n");
+  };
+
+  const createMermaidRenderLink = (mermaidCode: string) => {
+    const bytes = new TextEncoder().encode(mermaidCode);
+    let binary = "";
+    bytes.forEach((byte) => {
+      binary += String.fromCharCode(byte);
+    });
+    const encodedMermaid = btoa(binary);
+    return `https://mermaid.ink/img/${encodedMermaid}`;
+  };
+
+  const handleSubmit = async (event: FormEvent) => {
+    event.preventDefault();
+    const trimmedInput = input.trim();
+    if (!trimmedInput) {
+      return;
+    }
+
+    setLoading(true);
+    const userMessageId = `user-${Date.now()}`;
+    const assistantMessageId = `assistant-${Date.now()}`;
+    setMessages((previous) => [
+      ...previous,
+      {
+        id: userMessageId,
+        role: "user",
+        text: trimmedInput
+      },
+      {
+        id: assistantMessageId,
+        role: "assistant",
+        pending: true,
+        text: "Generating WBS..."
+      }
+    ]);
+    setInput("");
+
+    try {
+      const response = await fetch("/api/workflow", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          input: trimmedInput,
+          systemPrompt
+        })
+      });
+
+      const data = (await response.json()) as WorkflowResponse | { error: string };
+      if (!response.ok) {
+        const apiError = "error" in data ? data.error : "Request failed.";
+        throw new Error(apiError);
+      }
+
+      const workflowResult = data as WorkflowResponse;
+      setMessages((previous) =>
+        previous.map((message) =>
+          message.id === assistantMessageId
+            ? {
+                id: assistantMessageId,
+                role: "assistant",
+                result: workflowResult
+              }
+            : message
+        )
+      );
+    } catch (submitError) {
+      const message = submitError instanceof Error ? submitError.message : "Unexpected error";
+      setMessages((previous) =>
+        previous.map((chatMessage) =>
+          chatMessage.id === assistantMessageId
+            ? {
+                id: assistantMessageId,
+                role: "assistant",
+                text: message,
+                error: true
+              }
+            : chatMessage
+        )
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const closeSettings = () => {
+    setSettingsOpen(false);
+  };
+
+  const stopSettingsClose = (event: MouseEvent<HTMLElement>) => {
+    event.stopPropagation();
+  };
+
+  const resizeComposerInput = () => {
+    const textarea = composerInputRef.current;
+    if (!textarea) {
+      return;
+    }
+    textarea.style.height = "auto";
+    const computedLineHeight = Number.parseFloat(window.getComputedStyle(textarea).lineHeight) || 21;
+    const maxHeight = computedLineHeight * 5;
+    const nextHeight = Math.min(textarea.scrollHeight, maxHeight);
+    textarea.style.height = `${nextHeight}px`;
+    textarea.style.overflowY = textarea.scrollHeight > maxHeight ? "auto" : "hidden";
+  };
+
+  const handleComposerKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
+    if (event.key !== "Enter" || event.shiftKey || loading || event.nativeEvent.isComposing) {
+      return;
+    }
+    event.preventDefault();
+    event.currentTarget.form?.requestSubmit();
+  };
+
+  useEffect(() => {
+    resizeComposerInput();
+  }, [input]);
+
+  return (
+    <main className="teamsShell">
+      <header className="globalTopbar" aria-label="Global app bar">
+        <button type="button" className="topbarTeamsButton" aria-label="Microsoft Teams home">
+          <TeamsMark />
+        </button>
+
+        <button type="button" className="topbarSearch" aria-label="Search">
+          <span className="topbarSearchIcon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M10.2 4a6.2 6.2 0 1 0 3.84 11.06l4 4a1 1 0 1 0 1.42-1.42l-4-4A6.2 6.2 0 0 0 10.2 4zm0 2a4.2 4.2 0 1 1 0 8.4 4.2 4.2 0 0 1 0-8.4z" />
+            </svg>
+          </span>
+          <span className="topbarSearchText">Search</span>
+          <span className="topbarSearchShortcut">(&#8997; &#8984; E)</span>
+        </button>
+
+        <div className="topbarRight">
+          <button type="button" className="topbarIconButton" aria-label="More options">
+            ...
+          </button>
+          <span className="topbarStatusText">Projecting Su...</span>
+          <span className="topbarWarning" aria-label="Warning">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M12 3.5L2.5 20h19L12 3.5zm0 4.6c.4 0 .75.33.75.74v5.3a.75.75 0 0 1-1.5 0V8.84c0-.4.34-.74.75-.74zm0 9.35a1.05 1.05 0 1 1 0-2.1 1.05 1.05 0 0 1 0 2.1z" />
+            </svg>
+          </span>
+          <span className="topbarOnlineDot" aria-label="Online" />
+        </div>
+      </header>
+
+      <div className="teamsApp">
+        <aside className="teamsRail" aria-label="Primary navigation">
+        <button type="button" className="railItem">
+          <span className="railGlyph" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M12 3a6.5 6.5 0 0 0-6.5 6.5v3.36L3.7 15v1.25h16.6V15l-1.8-2.14V9.5A6.5 6.5 0 0 0 12 3zm0 18.3a2.6 2.6 0 0 0 2.54-2h-5.08a2.6 2.6 0 0 0 2.54 2z" />
+            </svg>
+          </span>
+          <span>Activity</span>
+        </button>
+        <button type="button" className="railItem active">
+          <span className="railGlyph" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M5 5.5h14a1.5 1.5 0 0 1 1.5 1.5v8A1.5 1.5 0 0 1 19 16.5h-7l-4.5 3v-3H5A1.5 1.5 0 0 1 3.5 15V7A1.5 1.5 0 0 1 5 5.5z" />
+            </svg>
+          </span>
+          <span>Chat</span>
+        </button>
+        </aside>
+
+        <aside className="teamsSidebar">
+        <header className="sidebarHeader">
+          <h2>Chat</h2>
+          <div className="sidebarIcons">
+            <button type="button" aria-label="More options">
+              <span aria-hidden="true">...</span>
+            </button>
+            <button type="button" aria-label="Search">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M10.2 4a6.2 6.2 0 1 0 3.84 11.06l4 4a1 1 0 1 0 1.42-1.42l-4-4A6.2 6.2 0 0 0 10.2 4zm0 2a4.2 4.2 0 1 1 0 8.4 4.2 4.2 0 0 1 0-8.4z" />
+              </svg>
+            </button>
+            <button type="button" aria-label="New message">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M4 4.75A1.75 1.75 0 0 1 5.75 3h8.5A1.75 1.75 0 0 1 16 4.75v3.5h-1.5v-3.5a.25.25 0 0 0-.25-.25h-8.5a.25.25 0 0 0-.25.25v12.5c0 .14.11.25.25.25h6.5V19h-6.5A1.75 1.75 0 0 1 4 17.25V4.75zm15.74 5.2a1.5 1.5 0 0 0-2.12 0l-4.9 4.9a1 1 0 0 0-.27.5l-.45 2.63a.5.5 0 0 0 .58.58l2.63-.45a1 1 0 0 0 .5-.27l4.9-4.9a1.5 1.5 0 0 0 0-2.12l-.87-.87z" />
+              </svg>
+            </button>
+            <button type="button" aria-label="Expand">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M7.4 9.2L12 13.8l4.6-4.6 1.4 1.4-6 6-6-6z" />
+              </svg>
+            </button>
+          </div>
+        </header>
+
+        <div className="sidebarFilterRow">
+          <button type="button" className="sidebarChip active">
+            Unread
+          </button>
+          <button type="button" className="sidebarChip">
+            Channels
+          </button>
+          <button type="button" className="sidebarChip">
+            Chats
+          </button>
+          <button type="button" className="sidebarFilterToggle" aria-label="Filter menu">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M7.4 9.2L12 13.8l4.6-4.6 1.4 1.4-6 6-6-6z" />
+            </svg>
+          </button>
+        </div>
+
+        <div className="sidebarBody">
+          <button type="button" className="sidebarListItem">
+            <span className="listIcon" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path d="M4 7.5A2.5 2.5 0 0 1 6.5 5h6A2.5 2.5 0 0 1 15 7.5v6a2.5 2.5 0 0 1-2.5 2.5h-6A2.5 2.5 0 0 1 4 13.5v-6zm9-1A2.5 2.5 0 0 1 15.5 4h2A2.5 2.5 0 0 1 20 6.5v2A2.5 2.5 0 0 1 17.5 11h-2A2.5 2.5 0 0 1 13 8.5v-2zm1.5 9A2.5 2.5 0 0 1 17 13h2a2.5 2.5 0 0 1 2.5 2.5v2A2.5 2.5 0 0 1 19 20h-2a2.5 2.5 0 0 1-2.5-2.5v-2z" />
+              </svg>
+            </span>
+            <span>Copilot</span>
+          </button>
+
+          <section className="sidebarSection">
+            <button type="button" className="sectionTitle">
+              <span className="chevron" aria-hidden="true">
+                <svg viewBox="0 0 24 24">
+                  <path d="M8.2 6.8L13.4 12l-5.2 5.2 1.4 1.4 6.6-6.6-6.6-6.6z" />
+                </svg>
+              </span>
+              <span>Quick views</span>
+            </button>
+            <button type="button" className="sidebarListItem indented">
+              <span className="listIcon" aria-hidden="true">
+                <svg viewBox="0 0 24 24">
+                  <path d="M7 4h10a2 2 0 0 1 2 2v12l-4-2.6L11 18l-4-2.6L3 18V6a2 2 0 0 1 2-2h2z" />
+                </svg>
+              </span>
+              <span>Drafts</span>
+            </button>
+          </section>
+
+          <section className="sidebarSection">
+            <button type="button" className="sectionTitle">
+              <span className="chevron" aria-hidden="true">
+                <svg viewBox="0 0 24 24">
+                  <path d="M8.2 6.8L13.4 12l-5.2 5.2 1.4 1.4 6.6-6.6-6.6-6.6z" />
+                </svg>
+              </span>
+              <span>Favourites</span>
+            </button>
+            <button type="button" className="sidebarListItem indented">
+              <span className="userDot">J</span>
+              <span>joe ronaldson (You)</span>
+            </button>
+          </section>
+
+          <section className="sidebarSection">
+            <button type="button" className="sectionTitle">
+              <span className="chevron" aria-hidden="true">
+                <svg viewBox="0 0 24 24">
+                  <path d="M8.2 6.8L13.4 12l-5.2 5.2 1.4 1.4 6.6-6.6-6.6-6.6z" />
+                </svg>
+              </span>
+              <span>Chats</span>
+            </button>
+          </section>
+
+          <section className="sidebarSection">
+            <button type="button" className="sectionTitle">
+              <span className="chevron down" aria-hidden="true">
+                <svg viewBox="0 0 24 24">
+                  <path d="M7.4 9.2L12 13.8l4.6-4.6 1.4 1.4-6 6-6-6z" />
+                </svg>
+              </span>
+              <span>Teams and channels</span>
+            </button>
+
+            <div className="treeNode root">
+              <span className="chevron" aria-hidden="true">
+                <svg viewBox="0 0 24 24">
+                  <path d="M8.2 6.8L13.4 12l-5.2 5.2 1.4 1.4 6.6-6.6-6.6-6.6z" />
+                </svg>
+              </span>
+              <span className="teamBadge">PH27</span>
+              <span>Projet! Hack 27</span>
+            </div>
+
+            <button type="button" className="treeLeaf">
+              Event General
+            </button>
+
+            <button type="button" className="treeLeaf active">
+              Team 2A - Scope2WBS
+            </button>
+
+            <button type="button" className="sidebarLinkButton">
+              See all channels
+            </button>
+            <button type="button" className="sidebarLinkButton">
+              See all your teams
+            </button>
+          </section>
+        </div>
+        </aside>
+
+        <section className="teamsMain">
+        <header className="channelTopbar">
+          <div className="channelTitleWrap">
+            <div className="channelTitleGroup">
+              <span className="channelMiniBadge">PH27</span>
+              <h1>Team 2A - Scope2WBS</h1>
+            </div>
+            <nav className="channelTabs" aria-label="Channel tabs">
+              <button type="button" className="tab active">
+                Conversation
+              </button>
+              <button type="button" className="tab">
+                Shared
+              </button>
+              <button type="button" className="tab">
+                Notes
+              </button>
+              <button type="button" className="tab">
+                Miro Board
+              </button>
+            </nav>
+          </div>
+
+          <div className="channelActions">
+            <button type="button" className="meetNowButton">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M3.5 7.5A1.5 1.5 0 0 1 5 6h9a1.5 1.5 0 0 1 1.5 1.5v1.2l3-1.8a1 1 0 0 1 1.5.86v8.5a1 1 0 0 1-1.5.86l-3-1.8v1.2A1.5 1.5 0 0 1 14 18h-9a1.5 1.5 0 0 1-1.5-1.5v-9zM5 7.5v9h9v-9H5z" />
+              </svg>
+              Meet now
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M7.4 9.2L12 13.8l4.6-4.6 1.4 1.4-6 6-6-6z" />
+              </svg>
+            </button>
+            <span className="channelActionsDivider" aria-hidden="true" />
+            <button
+              type="button"
+              className="channelActionIcon"
+              aria-label="Open chat details"
+              onClick={() => setSettingsOpen(true)}
+            >
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M4.5 5.5A1.5 1.5 0 0 1 6 4h12a1.5 1.5 0 0 1 1.5 1.5v9A1.5 1.5 0 0 1 18 16h-6l-4.5 3V16H6a1.5 1.5 0 0 1-1.5-1.5v-9zM6 5.5v9h3v1.7l2.6-1.7H18v-9H6z" />
+              </svg>
+            </button>
+            <button type="button" className="channelActionIcon" aria-label="Search channel">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M10.2 4a6.2 6.2 0 1 0 3.84 11.06l4 4a1 1 0 1 0 1.42-1.42l-4-4A6.2 6.2 0 0 0 10.2 4zm0 2a4.2 4.2 0 1 1 0 8.4 4.2 4.2 0 0 1 0-8.4z" />
+              </svg>
+            </button>
+            <button type="button" className="channelActionIcon" aria-label="Open panel">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M4 5.5A1.5 1.5 0 0 1 5.5 4h13A1.5 1.5 0 0 1 20 5.5v13a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 18.5v-13zM5.5 5.5v13h13v-13h-13zm3 1.5h1.5v10H8.5V7zm5 0h1.5v10h-1.5V7z" />
+              </svg>
+            </button>
+            <button type="button" className="channelActionMore" aria-label="More options">
+              ...
+            </button>
+          </div>
+        </header>
+
+        <section className="channelBody">
+          <div className="messageStream" ref={messageStreamRef}>
+            <article className="chatMessage left">
+              <AssistantAvatar />
+              <div className="bubble">
+                <p className="authorLine">{ASSISTANT_NAME}</p>
+                <p>
+                  Send me the Project Scope documents and I will create a WBS for you.
+                </p>
+              </div>
+            </article>
+
+            {messages.map((message) => {
+                if (message.role === "user") {
+                  return (
+                    <article key={message.id} className="chatMessage right">
+                      <div className="bubble">
+                        <p>{message.text}</p>
+                      </div>
+                    </article>
+                  );
+                }
+
+                if (message.pending) {
+                  return (
+                    <article key={message.id} className="chatMessage left">
+                      <AssistantAvatar />
+                      <div className="bubble">
+                        <p className="authorLine">{ASSISTANT_NAME}</p>
+                        <p>{message.text}</p>
+                      </div>
+                    </article>
+                  );
+                }
+
+                if (message.error) {
+                  return (
+                    <article key={message.id} className="chatMessage left">
+                      <AssistantAvatar />
+                      <div className="bubble">
+                        <p className="authorLine">{ASSISTANT_NAME}</p>
+                        <p className="error">{message.text}</p>
+                      </div>
+                    </article>
+                  );
+                }
+
+                const result = message.result;
+                if (!result) {
+                  return null;
+                }
+                const csvData = createCsvData(result.wbsRows);
+                const mermaidLink = result.mermaidCode ? createMermaidRenderLink(result.mermaidCode) : null;
+                return (
+                  <article key={message.id} className="chatMessage left">
+                    <AssistantAvatar />
+                    <div className="bubble">
+                      <p className="authorLine">{ASSISTANT_NAME}</p>
+                      {mermaidLink ? (
+                        <a href={mermaidLink} target="_blank" rel="noreferrer">
+                          Open rendered Mermaid chart
+                        </a>
+                      ) : (
+                        <p>No Mermaid diagram detected.</p>
+                      )}
+                      <a href={`data:text/csv;charset=utf-8,${encodeURIComponent(csvData)}`} download="output.csv">
+                        Export CSV
+                      </a>
+                    </div>
+                  </article>
+                );
+              })}
+          </div>
+
+          <form className="teamsComposer" onSubmit={handleSubmit}>
+            <div className="composerShell">
+              <textarea
+                id="input"
+                ref={composerInputRef}
+                value={input}
+                onChange={(event) => setInput(event.target.value)}
+                onKeyDown={handleComposerKeyDown}
+                rows={1}
+                placeholder="Message in Team 2A - Scope2WBS"
+              />
+              <div className="composerActions">
+                <button type="button" className="composerIconButton" aria-label="Format">
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M14.5 3l6.5 6.5-8.8 8.8H5.7v-6.5L14.5 3zm.1 2.8l-7.4 7.4v2.3h2.3l7.4-7.4-2.3-2.3zm-7.2 12h11v1.9h-11v-1.9z" />
+                  </svg>
+                </button>
+                <button type="button" className="composerIconButton" aria-label="Emoji">
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M12 2.9A9.1 9.1 0 1 0 12 21a9.1 9.1 0 0 0 0-18.2zm0 1.8a7.3 7.3 0 1 1 0 14.6 7.3 7.3 0 0 1 0-14.6zm-2.9 4.7a1.2 1.2 0 1 0 0 2.4 1.2 1.2 0 0 0 0-2.4zm5.8 0a1.2 1.2 0 1 0 0 2.4 1.2 1.2 0 0 0 0-2.4zm-6.2 5c.7 1.3 2 2.1 3.3 2.1s2.6-.8 3.3-2.1l1.6.9c-1 1.8-2.9 3-4.9 3s-3.9-1.2-4.9-3l1.6-.9z" />
+                  </svg>
+                </button>
+                <button type="button" className="composerIconButton" aria-label="Add content">
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M11 4h2v7h7v2h-7v7h-2v-7H4v-2h7V4z" />
+                  </svg>
+                </button>
+                <div className="composerDivider" aria-hidden="true" />
+                <button type="submit" disabled={loading} className="composerSendButton" aria-label="Send message">
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M3.2 4.8L21 12 3.2 19.2 4 13.8 14.2 12 4 10.2l-.8-5.4z" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </form>
+        </section>
+        </section>
+      </div>
+
+      {settingsOpen && (
+        <div className="settingsOverlay" onClick={closeSettings}>
+          <section className="settingsPanel" onClick={stopSettingsClose} aria-label="Settings panel">
+            <header className="settingsHeader">
+              <h2>Settings</h2>
+              <button type="button" className="closeButton" onClick={closeSettings}>
+                Close
+              </button>
+            </header>
+            <p className="settingsHint">
+              Configure workflow defaults used for every run. System prompt is managed only from this panel.
+            </p>
+            <label htmlFor="settings-prompt">System prompt</label>
+            <textarea
+              id="settings-prompt"
+              value={systemPrompt}
+              onChange={(event) => setSystemPrompt(event.target.value)}
+              rows={14}
+            />
+            <div className="settingsActions">
+              <button type="button" className="secondaryButton" onClick={() => setSystemPrompt(DEFAULT_PROMPT)}>
+                Reset prompt
+              </button>
+              <button type="button" className="primaryButton" onClick={closeSettings}>
+                Save and close
+              </button>
+            </div>
+          </section>
+        </div>
+      )}
+    </main>
+  );
+}
+
+export default App;

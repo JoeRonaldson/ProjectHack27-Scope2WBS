@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 120" role="img" aria-labelledby="title desc">
+  <title id="title">Scope2WBS full logo</title>
+  <desc id="desc">Scope2WBS brand mark</desc>
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#5b5fc7" />
+      <stop offset="100%" stop-color="#3e42a8" />
+    </linearGradient>
+  </defs>
+  <rect x="4" y="4" width="352" height="112" rx="24" fill="url(#bg)" />
+  <text
+    x="180"
+    y="72"
+    text-anchor="middle"
+    fill="#ffffff"
+    font-family="Segoe UI, Arial, sans-serif"
+    font-size="42"
+    font-weight="700"
+  >
+    Scope2WBS
+  </text>
+</svg>
