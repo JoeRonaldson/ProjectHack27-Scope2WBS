@@ -1,0 +1,22 @@
+Demolition Works Planning Skill
+
+Use this guidance when the project scope is primarily demolition, strip-out, enabling works removal, or decommissioning.
+
+Planning priorities:
+- Identify demolition boundaries, retained structures, and protected assets.
+- Sequence isolations, services disconnections, and make-safe activities before physical demolition.
+- Include temporary works, access scaffolds, and exclusion zones where relevant.
+- Separate hazardous material handling tasks (survey, removal, disposal, clearance) from general demolition.
+- Include permits, regulatory notifications, and hold points for inspections.
+- Structure work packages by area/zone, method, and disposal stream where possible.
+
+Risk and controls emphasis:
+- Public and workforce safety controls.
+- Utility strike prevention and service verification.
+- Dust, noise, vibration, and environmental management.
+- Waste segregation, transport, and legal disposal records.
+
+Output expectations:
+- Use clear demolition-specific activity names.
+- Keep dependencies explicit and realistic for staged deconstruction.
+- Avoid introducing construction or installation scope unless explicitly requested.

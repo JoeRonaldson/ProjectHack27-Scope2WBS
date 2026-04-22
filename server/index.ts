@@ -5,6 +5,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { getModelRuntimeConfig, getPublicModelRuntimeConfig } from "./model-config.js";
 import { DEFAULT_SYSTEM_PROMPT } from "./prompts.js";
+import { getAvailableSkills, getSkillDetailById } from "./skills.js";
 import { runWorkflow, type WorkflowStage } from "./workflow.js";
 
 dotenv.config();
@@ -23,6 +24,28 @@ app.get("/api/health", (_req, res) => {
     ok: true,
     model: getPublicModelRuntimeConfig()
   });
+});
+
+app.get("/api/skills", (_req, res) => {
+  res.json({
+    skills: getAvailableSkills()
+  });
+});
+
+app.get("/api/skills/:skillId", async (req, res) => {
+  try {
+    const skillId = typeof req.params.skillId === "string" ? req.params.skillId : "";
+    const skill = await getSkillDetailById(skillId);
+    if (!skill) {
+      res.status(404).json({ error: "Skill not found." });
+      return;
+    }
+
+    res.json({ skill });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Unexpected server error";
+    res.status(500).json({ error: message });
+  }
 });
 
 app.post("/api/workflow", async (req, res) => {

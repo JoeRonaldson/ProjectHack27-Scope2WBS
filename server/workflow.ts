@@ -1,6 +1,7 @@
 import { buildWbsRowsFromMermaid, extractMermaidCode } from "./mermaid.js";
 import { generateWorkflowOutput } from "./model-client.js";
 import { DEFAULT_MODEL, DEFAULT_SYSTEM_PROMPT } from "./prompts.js";
+import type { SkillUsage } from "./skills.js";
 import type { WbsRow } from "./types.js";
 export type { WbsRow } from "./types.js";
 
@@ -22,6 +23,7 @@ type WorkflowResult = {
   outputText: string;
   mermaidCode: string | null;
   wbsRows: WbsRow[];
+  skillsUsed: SkillUsage[];
   nextStage: WorkflowStage;
   initialScope: string;
   latestMermaid: string | null;
@@ -75,7 +77,7 @@ export async function runWorkflow(
   const latestMermaid = request.latestMermaid?.trim() || null;
 
   if (stage === "initial") {
-    const outputText = await generateWorkflowOutput({
+    const { outputText, skillsUsed } = await generateWorkflowOutput({
       input: trimmedInput,
       instructions: buildClarificationInstructions(systemPrompt),
       model
@@ -87,6 +89,7 @@ export async function runWorkflow(
       outputText,
       mermaidCode: null,
       wbsRows: [],
+      skillsUsed,
       nextStage: "awaiting-clarification",
       initialScope,
       latestMermaid: null
@@ -102,7 +105,7 @@ export async function runWorkflow(
       trimmedInput
     ].join("\n");
 
-    const outputText = await generateWorkflowOutput({
+    const { outputText, skillsUsed } = await generateWorkflowOutput({
       input: generationInput,
       instructions: buildWbsGenerationInstructions(systemPrompt),
       model
@@ -116,6 +119,7 @@ export async function runWorkflow(
       outputText,
       mermaidCode,
       wbsRows,
+      skillsUsed,
       nextStage: "wbs-ready",
       initialScope,
       latestMermaid: mermaidCode
@@ -133,7 +137,7 @@ export async function runWorkflow(
     trimmedInput
   ].join("\n");
 
-  const outputText = await generateWorkflowOutput({
+  const { outputText, skillsUsed } = await generateWorkflowOutput({
     input: followUpInput,
     instructions: buildFollowUpLoopInstructions(systemPrompt),
     model
@@ -147,6 +151,7 @@ export async function runWorkflow(
     outputText,
     mermaidCode,
     wbsRows,
+    skillsUsed,
     nextStage: "wbs-ready",
     initialScope,
     latestMermaid: mermaidCode ?? latestMermaid

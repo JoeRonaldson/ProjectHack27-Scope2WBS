@@ -10,6 +10,25 @@ type WbsRow = {
 
 type WorkflowStage = "initial" | "awaiting-clarification" | "wbs-ready";
 type WorkflowMode = "clarification" | "wbs" | "chat";
+type ProjectType = "demolition" | "it-upgrade";
+
+type SkillUsage = {
+  skillId: string;
+  label: string;
+  projectType: ProjectType;
+};
+
+type SkillDefinition = {
+  id: string;
+  label: string;
+  projectType: ProjectType;
+  description: string;
+  fileName: string;
+};
+
+type SkillDetail = SkillDefinition & {
+  content: string;
+};
 
 type WorkflowResponse = {
   mode: WorkflowMode;
@@ -17,6 +36,7 @@ type WorkflowResponse = {
   outputText: string;
   mermaidCode: string | null;
   wbsRows: WbsRow[];
+  skillsUsed: SkillUsage[];
   nextStage: WorkflowStage;
   initialScope: string;
   latestMermaid: string | null;
@@ -73,6 +93,10 @@ function App() {
   const [workflowStage, setWorkflowStage] = useState<WorkflowStage>("initial");
   const [initialScope, setInitialScope] = useState("");
   const [latestMermaid, setLatestMermaid] = useState<string | null>(null);
+  const [availableSkills, setAvailableSkills] = useState<SkillDefinition[]>([]);
+  const [selectedSkill, setSelectedSkill] = useState<SkillDetail | null>(null);
+  const [skillDetailError, setSkillDetailError] = useState<string | null>(null);
+  const [loadingSkillId, setLoadingSkillId] = useState<string | null>(null);
   const messageStreamRef = useRef<HTMLDivElement | null>(null);
   const composerInputRef = useRef<HTMLTextAreaElement | null>(null);
 
@@ -83,6 +107,30 @@ function App() {
     }
     messageStream.scrollTop = messageStream.scrollHeight;
   }, [messages]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    void (async () => {
+      try {
+        const response = await fetch("/api/skills");
+        if (!response.ok) {
+          return;
+        }
+
+        const payload = (await response.json()) as { skills?: SkillDefinition[] };
+        if (!cancelled && Array.isArray(payload.skills)) {
+          setAvailableSkills(payload.skills);
+        }
+      } catch {
+        // Keep chat functional if skills endpoint is unavailable.
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const createCsvData = (rows: WbsRow[]) => {
     if (!rows.length) {
@@ -196,6 +244,11 @@ function App() {
     setSettingsOpen(false);
   };
 
+  const closeSkillDetail = () => {
+    setSelectedSkill(null);
+    setSkillDetailError(null);
+  };
+
   const openSettings = (tab: "systemPrompt" | "skills" = "systemPrompt") => {
     setSettingsTab(tab);
     setSettingsOpen(true);
@@ -203,6 +256,25 @@ function App() {
 
   const stopSettingsClose = (event: MouseEvent<HTMLElement>) => {
     event.stopPropagation();
+  };
+
+  const openSkillDetail = async (skillId: string) => {
+    setSkillDetailError(null);
+    setLoadingSkillId(skillId);
+    try {
+      const response = await fetch(`/api/skills/${encodeURIComponent(skillId)}`);
+      const payload = (await response.json()) as { skill?: SkillDetail; error?: string };
+      if (!response.ok || !payload.skill) {
+        throw new Error(payload.error ?? "Could not load skill details.");
+      }
+      setSelectedSkill(payload.skill);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Could not load skill details.";
+      setSelectedSkill(null);
+      setSkillDetailError(message);
+    } finally {
+      setLoadingSkillId(null);
+    }
   };
 
   const resizeComposerInput = () => {
@@ -532,6 +604,23 @@ function App() {
                     <AssistantAvatar />
                     <div className="bubble">
                       <p className="authorLine">{ASSISTANT_NAME}</p>
+                      {result.skillsUsed.length ? (
+                        <div className="skillUsageLine">
+                          <span>Skill called:</span>
+                          {result.skillsUsed.map((skill) => (
+                            <button
+                              key={`${message.id}-${skill.skillId}`}
+                              type="button"
+                              className="skillLinkButton"
+                              onClick={() => void openSkillDetail(skill.skillId)}
+                              disabled={loadingSkillId === skill.skillId}
+                            >
+                              {skill.label}
+                              {loadingSkillId === skill.skillId ? "..." : ""}
+                            </button>
+                          ))}
+                        </div>
+                      ) : null}
                       {result.assistantText ? <p>{result.assistantText}</p> : null}
                       {mermaidLink ? (
                         <>
@@ -637,8 +726,31 @@ function App() {
                 ) : (
                   <div className="settingsSection">
                     <p className="settingsHint">
-                      Skills settings will live here. Use this tab to manage skill behavior for your workflow.
+                      Built-in skills are loaded automatically when the model decides extra context is needed.
                     </p>
+                    {availableSkills.length ? (
+                      <ul className="skillsList">
+                        {availableSkills.map((skill) => (
+                          <li key={skill.id} className="skillsListItem">
+                            <button
+                              type="button"
+                              className="skillsListTitleButton"
+                              onClick={() => void openSkillDetail(skill.id)}
+                              disabled={loadingSkillId === skill.id}
+                            >
+                              {skill.label}
+                              {loadingSkillId === skill.id ? "..." : ""}
+                            </button>
+                            <p className="skillsListMeta">
+                              ID: <code>{skill.id}</code> | Type: {skill.projectType}
+                            </p>
+                            <p className="skillsListDescription">{skill.description}</p>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p className="settingsHint">No skills loaded yet.</p>
+                    )}
                   </div>
                 )}
               </section>
@@ -653,6 +765,29 @@ function App() {
                 Save and close
               </button>
             </div>
+          </section>
+        </div>
+      )}
+
+      {(selectedSkill || skillDetailError) && (
+        <div className="skillDetailOverlay" onClick={closeSkillDetail}>
+          <section className="skillDetailPanel" onClick={stopSettingsClose} aria-label="Skill details">
+            <header className="skillDetailHeader">
+              <h2>{selectedSkill ? selectedSkill.label : "Skill details"}</h2>
+              <button type="button" className="closeButton" onClick={closeSkillDetail}>
+                Close
+              </button>
+            </header>
+            {skillDetailError ? <p className="error">{skillDetailError}</p> : null}
+            {selectedSkill ? (
+              <>
+                <p className="skillDetailMeta">
+                  ID: <code>{selectedSkill.id}</code> | Type: {selectedSkill.projectType}
+                </p>
+                <p className="skillDetailDescription">{selectedSkill.description}</p>
+                <pre className="skillDetailContent">{selectedSkill.content}</pre>
+              </>
+            ) : null}
           </section>
         </div>
       )}

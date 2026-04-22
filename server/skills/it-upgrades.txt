@@ -1,0 +1,22 @@
+IT Upgrades Planning Skill
+
+Use this guidance when the project scope is primarily IT upgrades, infrastructure refreshes, platform migrations, or enterprise technology rollout.
+
+Planning priorities:
+- Break work into discovery, design, build/configure, test, deployment, and hypercare phases.
+- Distinguish environment layers (network, compute, storage, application, endpoint, identity, security).
+- Include integration touchpoints, dependency mapping, and compatibility checks.
+- Add cutover and rollback planning activities for production-impacting changes.
+- Include data migration/validation steps when systems or schemas change.
+- Capture user readiness, training, and service desk handover activities.
+
+Risk and controls emphasis:
+- Business continuity and downtime minimization.
+- Security hardening, access controls, and compliance checks.
+- Performance and capacity validation before go-live.
+- Change management approvals and stakeholder communications.
+
+Output expectations:
+- Use precise IT delivery terminology.
+- Group tasks by platform/workstream while keeping end-to-end sequence clear.
+- Avoid civil/building tasks unless explicitly requested in scope.

@@ -716,6 +716,38 @@ textarea {
   font-weight: 600;
 }
 
+.skillUsageLine {
+  margin: 0 0 6px;
+  font-size: 12px;
+  color: #005798;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.skillLinkButton {
+  border: 1px solid #b9d9f3;
+  border-radius: 999px;
+  background: #e6f2ff;
+  color: #005798;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1;
+  padding: 4px 8px;
+  cursor: pointer;
+}
+
+.skillLinkButton:hover:not(:disabled) {
+  background: #d8ecff;
+}
+
+.skillLinkButton:disabled {
+  cursor: wait;
+  opacity: 0.8;
+}
+
 .bubble p {
   margin: 0;
   font-size: 14px;
@@ -947,6 +979,101 @@ pre {
   border-radius: 8px;
   padding: 12px;
   background: #faf9f8;
+}
+
+.skillsList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 10px;
+}
+
+.skillsListItem {
+  border: 1px solid #e1dfdd;
+  border-radius: 6px;
+  background: #ffffff;
+  padding: 10px;
+}
+
+.skillsListTitleButton {
+  border: 0;
+  background: transparent;
+  color: #005798;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 0;
+  cursor: pointer;
+}
+
+.skillsListTitleButton:hover:not(:disabled) {
+  text-decoration: underline;
+}
+
+.skillsListTitleButton:disabled {
+  cursor: wait;
+  opacity: 0.7;
+}
+
+.skillsListMeta {
+  margin: 4px 0 0;
+  font-size: 12px;
+  color: #605e5c;
+}
+
+.skillsListDescription {
+  margin: 6px 0 0;
+  font-size: 13px;
+  color: #323130;
+}
+
+.skillDetailOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.42);
+  display: grid;
+  place-items: center;
+  z-index: 25;
+}
+
+.skillDetailPanel {
+  width: min(820px, 92vw);
+  max-height: min(90vh, 900px);
+  overflow: auto;
+  background: #ffffff;
+  border: 1px solid #e1dfdd;
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.skillDetailHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.skillDetailHeader h2 {
+  margin: 0;
+  font-size: 20px;
+}
+
+.skillDetailMeta {
+  margin: 0;
+  font-size: 12px;
+  color: #605e5c;
+}
+
+.skillDetailDescription {
+  margin: 8px 0 10px;
+  font-size: 14px;
+  color: #252423;
+}
+
+.skillDetailContent {
+  max-height: 56vh;
+  overflow: auto;
 }
 
 .settingsActions {
