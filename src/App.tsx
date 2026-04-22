@@ -52,6 +52,8 @@ type ChatMessage =
       id: string;
       role: "assistant";
       result?: WorkflowResponse;
+      toolCallSkills?: SkillUsage[];
+      toolCallEvent?: boolean;
       text?: string;
       pending?: boolean;
       error?: boolean;
@@ -210,17 +212,62 @@ function App() {
       setWorkflowStage(workflowResult.nextStage);
       setInitialScope(workflowResult.initialScope);
       setLatestMermaid(workflowResult.latestMermaid);
-      setMessages((previous) =>
-        previous.map((message) =>
-          message.id === assistantMessageId
-            ? {
-                id: assistantMessageId,
+      if (!workflowResult.skillsUsed.length) {
+        setMessages((previous) =>
+          previous.map((message) =>
+            message.id === assistantMessageId
+              ? {
+                  id: assistantMessageId,
+                  role: "assistant",
+                  result: workflowResult
+                }
+              : message
+          )
+        );
+      } else {
+        const toolCallMessageId = `${assistantMessageId}-tool-call`;
+        const delayedResponseMessageId = `${assistantMessageId}-response`;
+
+        setMessages((previous) => {
+          const nextMessages: ChatMessage[] = [];
+          previous.forEach((message) => {
+            if (message.id !== assistantMessageId) {
+              nextMessages.push(message);
+              return;
+            }
+
+            nextMessages.push(
+              {
+                id: toolCallMessageId,
                 role: "assistant",
-                result: workflowResult
+                toolCallEvent: true,
+                toolCallSkills: workflowResult.skillsUsed
+              },
+              {
+                id: delayedResponseMessageId,
+                role: "assistant",
+                pending: true,
+                text: "Using skill context to draft response..."
               }
-            : message
-        )
-      );
+            );
+          });
+          return nextMessages;
+        });
+
+        window.setTimeout(() => {
+          setMessages((previous) =>
+            previous.map((message) =>
+              message.id === delayedResponseMessageId
+                ? {
+                    id: delayedResponseMessageId,
+                    role: "assistant",
+                    result: workflowResult
+                  }
+                : message
+            )
+          );
+        }, 450);
+      }
     } catch (submitError) {
       const message = submitError instanceof Error ? submitError.message : "Unexpected error";
       setMessages((previous) =>
@@ -592,22 +639,16 @@ function App() {
                   );
                 }
 
-                const result = message.result;
-                if (!result) {
-                  return null;
-                }
-                const csvData = createCsvData(result.wbsRows);
-                const mermaidLink = result.mermaidCode ? createMermaidRenderLink(result.mermaidCode) : null;
-                const hasWbsOutput = Boolean(result.mermaidCode);
-                return (
-                  <article key={message.id} className="chatMessage left">
-                    <AssistantAvatar />
-                    <div className="bubble">
-                      <p className="authorLine">{ASSISTANT_NAME}</p>
-                      {result.skillsUsed.length ? (
+                if (message.toolCallEvent && message.toolCallSkills?.length) {
+                  return (
+                    <article key={message.id} className="chatMessage left">
+                      <AssistantAvatar />
+                      <div className="bubble toolCallBubble">
+                        <p className="authorLine">{ASSISTANT_NAME}</p>
+                        <p className="toolCallLine">Tool call: loaded skill context</p>
                         <div className="skillUsageLine">
-                          <span>Skill called:</span>
-                          {result.skillsUsed.map((skill) => (
+                          <span>Skills:</span>
+                          {message.toolCallSkills.map((skill) => (
                             <button
                               key={`${message.id}-${skill.skillId}`}
                               type="button"
@@ -620,7 +661,23 @@ function App() {
                             </button>
                           ))}
                         </div>
-                      ) : null}
+                      </div>
+                    </article>
+                  );
+                }
+
+                const result = message.result;
+                if (!result) {
+                  return null;
+                }
+                const csvData = createCsvData(result.wbsRows);
+                const mermaidLink = result.mermaidCode ? createMermaidRenderLink(result.mermaidCode) : null;
+                const hasWbsOutput = Boolean(result.mermaidCode);
+                return (
+                  <article key={message.id} className="chatMessage left">
+                    <AssistantAvatar />
+                    <div className="bubble">
+                      <p className="authorLine">{ASSISTANT_NAME}</p>
                       {result.assistantText ? <p>{result.assistantText}</p> : null}
                       {mermaidLink ? (
                         <>

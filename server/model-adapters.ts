@@ -55,12 +55,11 @@ function stripCodeFence(text: string): string {
   return trimmed.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "").trim();
 }
 
-function parseToolProtocolResponse(rawOutputText: string): GenerateTextResult {
-  const normalized = stripCodeFence(rawOutputText);
+function parseProtocolObject(candidate: string): GenerateTextResult | null {
   try {
-    const parsed = JSON.parse(normalized) as unknown;
+    const parsed = JSON.parse(candidate) as unknown;
     if (!parsed || typeof parsed !== "object") {
-      return { outputText: rawOutputText.trim(), toolCalls: [] };
+      return null;
     }
 
     const typeValue = "type" in parsed ? parsed.type : "";
@@ -68,7 +67,7 @@ function parseToolProtocolResponse(rawOutputText: string): GenerateTextResult {
       const tool = parsed.tool as { name?: unknown; arguments?: unknown; callId?: unknown };
       const name = typeof tool.name === "string" ? tool.name.trim() : "";
       if (!name) {
-        return { outputText: rawOutputText.trim(), toolCalls: [] };
+        return null;
       }
 
       const callId =
@@ -88,12 +87,84 @@ function parseToolProtocolResponse(rawOutputText: string): GenerateTextResult {
     if (typeValue === "final") {
       const content = "content" in parsed ? parsed.content : "";
       return {
-        outputText: typeof content === "string" ? content.trim() : rawOutputText.trim(),
+        outputText: typeof content === "string" ? content.trim() : "",
         toolCalls: []
       };
     }
   } catch {
-    // Fall through to raw text response.
+    return null;
+  }
+
+  return null;
+}
+
+function extractTopLevelJsonObjects(text: string): string[] {
+  const chunks: string[] = [];
+  let depth = 0;
+  let startIndex = -1;
+  let inString = false;
+  let isEscaped = false;
+
+  for (let index = 0; index < text.length; index += 1) {
+    const character = text[index];
+    if (inString) {
+      if (isEscaped) {
+        isEscaped = false;
+      } else if (character === "\\") {
+        isEscaped = true;
+      } else if (character === "\"") {
+        inString = false;
+      }
+      continue;
+    }
+
+    if (character === "\"") {
+      inString = true;
+      continue;
+    }
+
+    if (character === "{") {
+      if (depth === 0) {
+        startIndex = index;
+      }
+      depth += 1;
+      continue;
+    }
+
+    if (character === "}") {
+      if (depth === 0) {
+        continue;
+      }
+      depth -= 1;
+      if (depth === 0 && startIndex >= 0) {
+        chunks.push(text.slice(startIndex, index + 1));
+        startIndex = -1;
+      }
+    }
+  }
+
+  return chunks;
+}
+
+function parseToolProtocolResponse(rawOutputText: string): GenerateTextResult {
+  const normalized = stripCodeFence(rawOutputText);
+  const directParse = parseProtocolObject(normalized);
+  if (directParse) {
+    return directParse;
+  }
+
+  const chunks = extractTopLevelJsonObjects(normalized);
+  const parsedChunks = chunks
+    .map((chunk) => parseProtocolObject(chunk))
+    .filter((value): value is GenerateTextResult => Boolean(value));
+  const toolCallChunk = parsedChunks.find((chunk) => chunk.toolCalls.length);
+  if (toolCallChunk) {
+    return toolCallChunk;
+  }
+
+  const finalChunk = [...parsedChunks].reverse().find((chunk) => chunk.outputText);
+  if (finalChunk) {
+    return finalChunk;
   }
 
   return { outputText: rawOutputText.trim(), toolCalls: [] };

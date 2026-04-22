@@ -748,6 +748,17 @@ textarea {
   opacity: 0.8;
 }
 
+.toolCallBubble {
+  border-left: 3px solid #5b5fc7;
+}
+
+.toolCallLine {
+  margin: 0 0 6px !important;
+  font-size: 13px !important;
+  font-weight: 600;
+  color: #3b3a39 !important;
+}
+
 .bubble p {
   margin: 0;
   font-size: 14px;

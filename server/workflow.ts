@@ -34,6 +34,7 @@ function buildClarificationInstructions(basePrompt: string): string {
 
 Conversation protocol:
 - Analyse the user's first scope message.
+- Before asking any clarifying questions, call the get_skill_context tool exactly once to load the best matching skill.
 - Ask exactly 2 high-impact clarifying questions that are required to improve WBS quality.
 - Keep both questions short and numbered as Q1 and Q2.
 - For each question, provide exactly 3 short options labelled A, B, and C.
@@ -80,7 +81,8 @@ export async function runWorkflow(
     const { outputText, skillsUsed } = await generateWorkflowOutput({
       input: trimmedInput,
       instructions: buildClarificationInstructions(systemPrompt),
-      model
+      model,
+      enforceSkillCall: true
     });
 
     return {

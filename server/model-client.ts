@@ -10,6 +10,7 @@ type WorkflowGenerationInput = {
   input: string;
   instructions: string;
   model: string;
+  enforceSkillCall?: boolean;
 };
 
 type WorkflowGenerationResult = {
@@ -20,7 +21,8 @@ type WorkflowGenerationResult = {
 export async function generateWorkflowOutput({
   input,
   instructions,
-  model
+  model,
+  enforceSkillCall = false
 }: WorkflowGenerationInput): Promise<WorkflowGenerationResult> {
   const config = getModelRuntimeConfig();
   const effectiveModel = model.trim() || config.model;
@@ -35,10 +37,28 @@ export async function generateWorkflowOutput({
     tools: [skillTool]
   });
 
-  const requestedSkillCall = firstPass.toolCalls.find((toolCall) => toolCall.name === skillTool.name);
+  let fallbackOutputText = firstPass.outputText;
+  let requestedSkillCall = firstPass.toolCalls.find((toolCall) => toolCall.name === skillTool.name);
+  if (!requestedSkillCall && enforceSkillCall) {
+    const enforcedInstructions = `${instructions}
+
+Mandatory step for this response:
+- You must call get_skill_context exactly once before giving the final answer.
+- First response must be a tool_call JSON object.`;
+    const enforcedPass = await adapter.generateTextWithTools({
+      input,
+      instructions: enforcedInstructions,
+      model: effectiveModel,
+      config,
+      tools: [skillTool]
+    });
+    fallbackOutputText = enforcedPass.outputText;
+    requestedSkillCall = enforcedPass.toolCalls.find((toolCall) => toolCall.name === skillTool.name);
+  }
+
   if (!requestedSkillCall) {
     return {
-      outputText: firstPass.outputText,
+      outputText: fallbackOutputText,
       skillsUsed: []
     };
   }
