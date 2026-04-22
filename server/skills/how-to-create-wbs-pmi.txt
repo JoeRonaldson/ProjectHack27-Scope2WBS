@@ -1,0 +1,133 @@
+This tutorial covers the basic principles of developing a work breakdown structure (WBS). A WBS starts with a dynamic vision of the project, perhaps in the form of a drawing, diagram, or computer representation. The purpose of a WBS is to help the project manager in managing the project, with its accounting aspects aimed at aiding the project manager in applying earned value measures of planned versus actual costs. A WBS describes the sum of work required, is a communications tool best reduced to writing, and should be useful to all those performing the project. Finally, the WBS is a way for the project manager to defining the project's performance strategy and exercising change control.
+
+Concerns of Project Managers
+
+PM TUTORIAL
+
+The Olde Curmudgeon
+
+Sam received a message that a schedule and cost estimate is required for the project before proceeding with execution. Suddenly it became clear that building a raft was serious business that had to be carefully managed. Not enjoying doing a lot of work for others without adequate compensation, Sam proceeded to document the project.
+
+First, the functions that were to be performed by the raft were Iisted on a piece of birch bark using a burnt stick. Realizing that the cost of building the raft increased faster than the increase in its size, Sam decided to make it small, even if it requires multiple trips across the river. Therefore, a means of returning it to the landing on this side of the river was needed. Second, a sketch of the raft was made on a slab of stone. From this drawing, a rough bill-of-materials was developed.
+
+With this basic information in hand, Sam was ready to develop a WBS (work breakdown structure).
+
+img
+PREPARING TO DEVELOP THE WBS
+Projects today are often quite large and complex. Failure to plan the project carefully can result in excessive rework and interminable delays in completion. Failure to communicate the plan can lead to confusion and uncoordinated efforts. Failure to define what is a part of the project, as well as what is not, may result in work being performed that was unnecessary to create the product of the project and thus lead to both schedule and budget overruns.
+
+A Vision
+Today, the project manager is expected to develop a clear vision of the product of the project and of the project by which it will be created. That is an important notion.
+
+The vision of the product of the project may be static in nature; what it will look like when it is completed. This can be represented in a 3-dimensional physical model or as a graphic version of that on a computer screen. Soon it will be possible to create such an image via holography.
+
+The vision of the project is dynamic in nature, incorporating successive views of the product as it takes shape, first conceptually, then as drawings in two and three dimensions, and finally as a 3-dimensional graphic of the progressive steps in producing that product. This final representation can be driven by a project network diagram based schedule. (For a discussion of one of the earliest applications of this concept, see the Showcase article, “Project Management at the Minnesota Department of Transportation,” PMJ, November 1988.)
+
+A sketch of the product clarifies what is desired as seen above. (See “An Interview with Jeana Yeager” in the Showcase article “Voyager,” PMJ, April 1988, p. 46, for a description of the significance of a sketch drawn on a napkin.)
+
+For many products, a bill-of-materials (BOM) maybe useful in understanding the sketch in more detail. It can be a simple, unstructured “materials takeoff” or “engineering BOM,” i.e., just a simple list of parts that must be assembled. Alternatively, it maybe useful to prepare a simplified “manufacturing BOM” that, through its structure, illustrates how you plan to assemble the pieces of the product. This can be developed in a top-down or bottom-up manner, or a combination of the two.
+
+The listing and analysis of the functions to be performed provides a clear statement of what the product of the project is to perform. In purchasing, this is known as specifying the performance requirements. A more formal approach has been described by the U.S. Army Rock Island Arsenal, known as the Functional Flow-down Diagram.
+
+Table 1. Schematic of a WBS
+
+img
+For a software project, a structured programming diagram may serve the same purpose. For a movie, a general storyboard, identifying setting and actors, may be most useful. Each technology has its own set of tools that help depict the product of the project. During this process, many decisions are made that will be critical in managing the project.
+
+THE WBS
+Work Breakdown Structure (WBS): a product-oriented “family tree” of project components that organizes and defines the total scope of the project. Each descending level represents an increasingly detailed definition of a project component. Project components may be products or services [1].
+
+Lists must be one of the oldest of management tools. While birch bark may have been the medium of choice at one time, the backs of envelopes soon took over that role. Only recently has the process been formalized, in part because of the desire to develop better management tools based on it. Thus, the WBS was invented, defined, refined…and perhaps defiled.
+
+The primary purpose of the WBS is to aid the Project Manager (PM) in managing the project. Its concept is as simple as the answer to the question, “How do you eat an elephant?” Answer: “One bite at a time!” The WBS is a tool for dividing the elephant up into bite-size pieces. It looks similar to a family tree, with each generation being called a level. The top level is usually designated “level 0,” the next one down “level l,” etc.
+
+It is easy to confuse the WBS with two similar documents, an organization chart and the structured BOM. While they may appear similar, there are important distinctions. A WBS Portrays the work to be done. The organization chart portrays the relationships between people who may be responsible for performing the work of a project. The structured BOM Portrays the objects that will be produced when the work is done. Three different functions, three different tools.
+
+Developing the WBS
+The mechanical aspects of developing a WBS are quite simple. Napkins or the backs of envelopes are still useful devices. Additional discipline is added by introducing a hierarchical concept, permitting attention to be focused on different levels of detail as the process proceeds. A word processor provides a flexible tool with automatic indentation (via tabs) but with the convenience of easy change and adding extra space where required. A more sophisticated approach involves the use of project planning, scheduling and control software with a built-in capabiliyy for developing and displaying the WBS in either indented list or family tree format. This software has the advantage of interfacing directly with a project network diagramming capability. However done, by focusing primarily on one higher level element at a time, the ability to think about the lower level elements required and avoid omissions is greatly enhanced.
+
+A schematic of a WBS is shown in Table 1.
+
+The Purposes of the WBS
+A project consists of the sum total of all the elements of the WBS. Conversely, an element that is not contained in the WBS is not a part of the project. Any work that cannot be identified in the WBS requires authorization to proceed, either as a recognized omission or as an approved change order.
+
+The WBS is, first and foremost, a tool to be used by the project manager to manage the project. While there are differences of opinion on this issue, it is the O.C.'s opinion (one we have confirmed with several other practitioners) that the WBS should not be used as a financial accounting tool. Some writers suggest using standard WBSs across all projects to permit the collection of costs in a manner such that they can be compared across projects. This is the position of the U.S. Department of Defense. Our opinion is that this unnecessarily constrains the project manager in performing the project in an optimum manner. There are other methods that can be used to collect costs for comparison across projects and financial accounting purposes. The accounting on the WBS should be aimed solely to aid the Project manager in applying earned value measures of planned versus actual costs.
+
+There are several ways by which either financial accounting or comparative analyses of deliverables can be achieved. One of these is in the coding of work packages or activities. If the same code is used to identify a type of work, similar activities can then be compared across projects with even more meaning than comparing level 1 or 2 WBS elements. This also provides a more meaningful way to develop an estimating database. Another alternative is for accounting to map WBS elements to their own, shall we suggest, Financial Breakdown Structure (FBS) or Component Breakdown Structure (CBS). The FBS or CBS might not need to go below level 3 to collect these costs.
+
+Accordingly, the WBS must focus on the work to be accomplished to complete the project. At each level the WBS elements should normally be specific deliverables. Level “0” is the end product of the project. Level “l” may be components of the end product but may also be a document that portrays the results, conclusions or recommendations of a phase of the project. This is consistent with the U.S. Department of Defense's DSARC (Defense Systems Acquisition Review Council) procedure, the practice for managing the development of new pharmaceuticals, and in the stage-gate procedure for new product development. Also, certain costs, such as project management, that cannot be directly related to lower level WBS items can be collected in WBS elements that do not deliver a product per se.
+
+Sequential relationships between elements, work packages, or activities are not shown in the WBS. Such temporal or technological relationships are shown in the PND (Project Network Diagram).
+
+The manner in which the WBS is structured can have major impact on the way the project is executed. First, consider some rules that must be followed in developing a WBS.
+
+RULES FOR DEVELOPING A WBS
+Uniqueness -An element of work is associated with one and only one higher level element. Care must be exercised in this regard to avoid duplication of work.
+
+Summative – The work content of an element is the sum of the work content of all its immediately subordinate elements.
+
+Unity of responsibility - Each element should be the clear responsibility of a single individual. Use specific names and titles. Where the identification of the specific performer is unclear, especially in a matrixed project, the identification of the next higher level individual should be used. One of the most effective and timely efforts by a purchasing function observed on a project identified the vice president of purchasing as the responsible person. He was determined to not be accused of holding up the project.
+
+Motivation by involvement - It is well established that involvement in planning leads to motivation to perform to the plan. That does not mean that every project participant has to be involved in every stage of planning. A level-by-level process, with participants including those responsible for two levels higher in the WBS, should provide adequate communication and feedback upwards if problems are identified.
+
+Documentation - The WBS is a communications device. Precision and assurance of communication are greatest when reduced to writing. It should be approached in much the same manner as writing a contract with an outside agency without all the boilerplate. A part of this documentation must be the coding structure of the WBS so that all project participants can, indeed should be required to, refer to the appropriate WBS element in all work and work products. (See “Scope Management Through a WBS: Key to Success for the Logan Expansion Project,” PMNETwork, May 1993, pp. 12–18. Note: This project was selected as PMI Project of the Year for 1994.)
+
+Consistency of definitions -To ensure ease and accuracy of communications, the definition of terms should be consistent over the entire WBS and, ideally, across all projects performed in an organization.
+
+Utility of the WBS - Above all, the WBS must be useful to all those who will refer to it in performing the project, from responsible supervisory personnel to the highest level of management that will oversee the project and, of course, to the client. Branches need go only to the level of detail necessary for effective management of the work. Indeed, the WBS can be considerably more detailed on immediate work and summary on future work, adding detail as understanding of future work becomes more clear.
+
+Baseline control - Finally, for this discussion, the WBS should be approved by all essential stakeholders as the definitive statement of both the necessary and sufficient work content of the project. This then provides the baseline against which the inevitable changes to scope are approved and documented.
+
+THE PROJECT TEAM
+By this time, you should know the nature of your project charter and who will be the key people on the project team. Knowledge of their specific skills and talents can have an impact on exactly how you develop the WBS and how you choose to organize your project. Similarly, consider where your project falls on the continuum from projectized to weak matrix. For example, if it is totally projectized, you will likely have more flexibility in assigning responsibilities. In a matrix organization you may have less control over which individuals work on some aspects of your project and should conform work package definitions to the organizational elements that will actually perform the work.
+
+The number of people working on your project will also have an impact as smaller projects can be managed with somewhat more flexibility than larger projects.
+
+Sometimes the project charter will dictate the composition of the team. On the other hand, you may have the opportunity to select the individuals for your team. The capabilities of the people on your team may influence exactly how the work is organized and thus effect the way in which you define the WBS. The optimum plan should take advantage of the strengths and weaknesses of the individuals to the greatest extent possible. Often, tradeoffs will have to be made due to the availability of key individuals as they rotate off of other projects.
+
+Many projects are composed of the efforts of several subcontractors and vendors. Care should be taken to match the WBS to the unique capabilities of these suppliers. For example, it is often desirable, where possible, for all components of major items to be supplied through a turnkey contract. This can substantially reduce the hassles and finger-pointing involved when the item does not perform as required. Contractor capabilities and availability become especially important when the work has to be performed in less populated geographic areas or when the number of possible contractors is small. For example, on a major casting plant, delays were encountered because there was a single supplier of a major component and much of their capacity was absorbed by a contract that was placed a few months before the contract on the subject casting plant was let. An excellent example of effective recognition of contractor capability and availability was documented in the showcase article, “The Endicott Oil Field” (PMNETwork, December 1987, pp. 41–50).
+
+PROJECT STRATEGY AND THE WBS
+The WBS is a means for the project manager to define the strategy by which the project will be performed. Some of the strategy is dictated by technology. For example, a school building's structural system was largely precast concrete. One beam weighed some 120 tons. It had to be hauled into the basement and lifted three stories by two large cranes. This dictated the sequence of much other work to provide access until that beam was in place. On a software project, it may be important to design, code and test many utility routines prior to completing coding on most application routines. In preparing a Ph.D. dissertation, it is important to keep all chapters moving ahead concurrently lest developments in one chapter might require a rewrite of another chapter.
+
+Some strategic decisions are a result of the resources that can be brought to the project. Some are a reflection of the political pressures, real and potential, internal and external, the project faces. Some are personal preferences of the project manager. The personal preferences should be based more on the project manager's weaknesses than strengths, a consideration that grows in importance with the magnitude of the project. While the project manager is likely selected due to specific strengths, designing the project strategy based on the project manager performing lower level responsibilities can result in an unbalanced view of and attention to the problems and opportunities that are inherent in any project.
+
+The project manager must be concerned with determining the direction of the project, the methodologies for decision making and the degree of personal involvement, and recognizing and solving problems before their impact on the project becomes significant. The WBS provides a major opportunity to deal with these concerns.
+
+A Metaphor for a WBS
+It is convenient to think of a WBS as a stack of billiard balls. Imagine using a billiard ball rack and 35 balls. Stack them to make a three-sided pyramid.
+
+The balls represent the elements of the WBS. The work inside the ball is well suited to assignment to a specific individual. The project manager should be primarily concerned with the work at level 1 of the WBS. Similarly, the work in each successively lower level in the WBS is guided by the person responsible at the level above. At each level, some attention should be given to lower levels to ensure that accurate communication has taken place.
+
+The points of contact between the balls represent the direct interfaces between the elements. These occur at the same level and at successive levels. Points of contact between levels are where direction and guidance are required by the responsible person at the level above; the formal lines of responsibility. Conflicts and misunderstandings of this type tend to surface rather naturally, although the wise project manager assumes they will not and takes action to cause them to surface.
+
+The points of contact between balls at the same level, and especially between balls that do not touch a common higher level ball, are where there are likely to be the most misunderstandings, conflicts, and delays in the project if not tended to properly. An example of such a misunderstanding, and its impact on the project, involves the design and development of two interacting printed circuit boards. One was under the direction of a computer scientist and the other of an electrical engineer. It was agreed that a set of 256 values were required for the required functionality. The computer scientist, based on the usual practices of computer design, defined the domain as being from 0 to 255. The electrical engineer defined the domain to be 1 to 256. This difference was sufficient to prohibit the effective interfacing of these two elements. The impact on the project was about $600,000 of rework. Once again, we have a vivid example of the alternative way to spell “assume.”
+
+One criterion of a good WBS is that the points of contact between balls (think of this in hyperspace) should be minimal. The more such points of contact, the more time the project manager will have to spend providing coordination between elements in the WBS.
+
+The interstices between the balls represent the undiscovered or unassigned work to be done. Even the most routine project has such interstices, largely due to the unique nature of projects. As the size, complexity, innovative technology, urgency and other characteristics that contribute to uniqueness of the project increase, the greater the likelihood, magnitude, and difficulty in identifying the content of these interstices. While the project manager must be primarily concerned with the interstices at the next level down, some attention should be paid to such interstices at every level of the WBS to, hopefully, discover the undiscovered work content of the project while it is still just smoke…before it becomes a full-fledged fire.
+
+All of these aspects of projects require considerable attention by the project manager, first to minimize the potential problems, and second, to identify them early in their development. The project manager must design the planning, scheduling and control system in such a way as to force recognition of problems of this type before they cause damage to the project. Managing-by-walking-around is one of the most effective ways to ferret out these potential problems. The most effective approach to minimizing these problems is to design the WBS in a manner that minimizes their potential. This is the essence of strategic planning of a project.
+
+SELECTlNG THE PREFERRED WBS
+The project manager should prepare more than one alternative WBS down to the third level (see Table 2). Analyze and document the pros and cons of each, considering the above discussion. Performing this analysis explicitly, in this disciplined manner, will minimize the natural tendency to rely on a successful past experience or personal prejudice and ensure an adequate consideration of the unique characteristics of the project at hand. An exception to this would be where a project is very similar to a past project. In such case, the previous WBS might be used. However, it is advisable to review the analysis that was performed on the previous project to ensure that the same criteria prevail in the new project and that the judgments made then are still applicable.
+
+Table 2. Alternative WBSs
+
+img
+Table 3. Evaluation of Alternative WBSs
+
+img
+A FINAL THOUGHT
+While the WBS is an essential element to provide stability of a project, it must be recognized that projects are used to manage change. Change in the project is usually inevitable as learning happens during the life of the project. Consideration should be given in developing the WBS as to how changed requirements and work content will be incorporated into the approved WBS. Change control is essential. The anomaly of projects is that, while they are the means for instituting change, change itself creates many of the problems on projects.
+
+Sam listed the objectives and other considerations that would be important in deciding how to manage the building of a raft. Then three WBSs were developed down to level 3. Each of these was evaluated on a three-point scale: good, bad, and intermediate or indifferent. Based on this analysis, even though it required more work by Sam, the fast and efficient approach was chosen (see Table 3).
+
+REFERENCES
+1. A Guide to the Project Management Body of Knowledge (PMBOK), Exposure Draft (especially Chapter 5). September 1994. Project Management Institute, Upper Darby, PA.
+
+2. Lavold, Garry. 1983. Developing and Using the Work Breakdown Structure. In Project Management Handbook, David I. Cleland and William R. King. New York: Van Nostrand Reinhold, pp. 302-323.
+
+3. Kerzner, Harold. 1989. Project Management: A Systems Approach to Planning, Scheduling and Control, 3rd Ed. New York: Van Nostrand Reinhold, pp. 597-607. ❏
+
+This material has been reproduced with the permission of the copyright owner. Unauthorized reproduction of this material is strictly prohibited. For permission to reproduce this material, please contact PMI.

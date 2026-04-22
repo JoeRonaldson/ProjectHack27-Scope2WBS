@@ -7,7 +7,7 @@ const __dirname = path.dirname(__filename);
 const SKILLS_DIR = path.resolve(__dirname, "skills");
 const FALLBACK_SKILLS_DIR = path.resolve(__dirname, "../server/skills");
 
-export type ProjectType = "demolition" | "it-upgrade";
+export type ProjectType = "demolition" | "it-upgrade" | "wbs-framework";
 
 export type SkillDefinition = {
   id: string;
@@ -29,6 +29,13 @@ type SkillToolCallArgs = {
 };
 
 export const BUILT_IN_SKILLS: SkillDefinition[] = [
+  {
+    id: "how-to-create-wbs-pmi",
+    label: "How to create a WBS (PMI)",
+    projectType: "wbs-framework",
+    description: "Use PMI-aligned guidance for structuring and quality-checking WBS outputs.",
+    fileName: "how-to-create-wbs-pmi.txt"
+  },
   {
     id: "demolition-works",
     label: "Demolition works",

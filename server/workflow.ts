@@ -34,12 +34,11 @@ function buildClarificationInstructions(basePrompt: string): string {
 
 Conversation protocol:
 - Analyse the user's first scope message.
-- Before asking any clarifying questions, call the get_skill_context tool exactly once to load the best matching skill.
+- Immediately after receiving the scope document, call get_skill_context exactly once with skillId "how-to-create-wbs-pmi" before asking any clarifying questions.
 - Ask exactly 2 high-impact clarifying questions that are required to improve WBS quality.
 - Keep both questions short and numbered as Q1 and Q2.
-- For each question, provide exactly 3 short options labelled A, B, and C.
+- For each question, provide 3 short options labelled A, B, and C.
 - Present both questions in the same message.
-- End with a short instruction telling the user to reply with their selected option letters and any extra details.
 - Do not generate a WBS yet.
 - Do not include Mermaid output in this step.`;
 }
@@ -82,7 +81,9 @@ export async function runWorkflow(
       input: trimmedInput,
       instructions: buildClarificationInstructions(systemPrompt),
       model,
-      enforceSkillCall: true
+      enforceSkillCall: true,
+      requiredSkillId: "how-to-create-wbs-pmi",
+      requireSecondScopeSkillCall: true
     });
 
     return {

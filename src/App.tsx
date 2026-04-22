@@ -10,7 +10,7 @@ type WbsRow = {
 
 type WorkflowStage = "initial" | "awaiting-clarification" | "wbs-ready";
 type WorkflowMode = "clarification" | "wbs" | "chat";
-type ProjectType = "demolition" | "it-upgrade";
+type ProjectType = "demolition" | "it-upgrade" | "wbs-framework";
 
 type SkillUsage = {
   skillId: string;
@@ -52,7 +52,7 @@ type ChatMessage =
       id: string;
       role: "assistant";
       result?: WorkflowResponse;
-      toolCallSkills?: SkillUsage[];
+      toolCallSkill?: SkillUsage;
       toolCallEvent?: boolean;
       text?: string;
       pending?: boolean;
@@ -236,20 +236,21 @@ function App() {
               return;
             }
 
-            nextMessages.push(
-              {
-                id: toolCallMessageId,
+            workflowResult.skillsUsed.forEach((skill, skillIndex) => {
+              nextMessages.push({
+                id: `${toolCallMessageId}-${skillIndex}`,
                 role: "assistant",
                 toolCallEvent: true,
-                toolCallSkills: workflowResult.skillsUsed
-              },
-              {
-                id: delayedResponseMessageId,
-                role: "assistant",
-                pending: true,
-                text: "Using skill context to draft response..."
-              }
-            );
+                toolCallSkill: skill
+              });
+            });
+
+            nextMessages.push({
+              id: delayedResponseMessageId,
+              role: "assistant",
+              pending: true,
+              text: "Using skill context to draft response..."
+            });
           });
           return nextMessages;
         });
@@ -370,12 +371,7 @@ function App() {
           <button type="button" className="topbarIconButton" aria-label="More options">
             ...
           </button>
-          <span className="topbarStatusText">Projecting Su...</span>
-          <span className="topbarWarning" aria-label="Warning">
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M12 3.5L2.5 20h19L12 3.5zm0 4.6c.4 0 .75.33.75.74v5.3a.75.75 0 0 1-1.5 0V8.84c0-.4.34-.74.75-.74zm0 9.35a1.05 1.05 0 1 1 0-2.1 1.05 1.05 0 0 1 0 2.1z" />
-            </svg>
-          </span>
+          <span className="topbarStatusText">Projecting Success</span>
           <span className="topbarOnlineDot" aria-label="Online" />
         </div>
       </header>
@@ -604,26 +600,24 @@ function App() {
                   );
                 }
 
-                if (message.toolCallEvent && message.toolCallSkills?.length) {
+                if (message.toolCallEvent && message.toolCallSkill) {
+                  const toolCallSkill = message.toolCallSkill;
                   return (
                     <article key={message.id} className="chatMessage left">
                       <AssistantAvatar />
                       <div className="bubble toolCallBubble">
                         <p className="authorLine">{ASSISTANT_NAME}</p>
                         <div className="skillUsageLine">
-                          <span>Skills:</span>
-                          {message.toolCallSkills.map((skill) => (
-                            <button
-                              key={`${message.id}-${skill.skillId}`}
-                              type="button"
-                              className="skillLinkButton"
-                              onClick={() => void openSkillDetail(skill.skillId)}
-                              disabled={loadingSkillId === skill.skillId}
-                            >
-                              {skill.label}
-                              {loadingSkillId === skill.skillId ? "..." : ""}
-                            </button>
-                          ))}
+                          <span>Skill:</span>
+                          <button
+                            type="button"
+                            className="skillLinkButton"
+                            onClick={() => void openSkillDetail(toolCallSkill.skillId)}
+                            disabled={loadingSkillId === toolCallSkill.skillId}
+                          >
+                            {toolCallSkill.label}
+                            {loadingSkillId === toolCallSkill.skillId ? "..." : ""}
+                          </button>
                         </div>
                       </div>
                     </article>
