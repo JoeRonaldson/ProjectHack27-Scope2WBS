@@ -3,7 +3,9 @@ import dotenv from "dotenv";
 import express from "express";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { DEFAULT_MODEL, DEFAULT_SYSTEM_PROMPT, runWorkflow } from "./workflow.js";
+import { getModelRuntimeConfig, getPublicModelRuntimeConfig } from "./model-config.js";
+import { DEFAULT_SYSTEM_PROMPT } from "./prompts.js";
+import { runWorkflow } from "./workflow.js";
 
 dotenv.config();
 
@@ -17,7 +19,10 @@ app.use(cors());
 app.use(express.json({ limit: "2mb" }));
 
 app.get("/api/health", (_req, res) => {
-  res.json({ ok: true });
+  res.json({
+    ok: true,
+    model: getPublicModelRuntimeConfig()
+  });
 });
 
 app.post("/api/workflow", async (req, res) => {
@@ -30,7 +35,7 @@ app.post("/api/workflow", async (req, res) => {
     const model =
       typeof req.body?.model === "string" && req.body.model.trim()
         ? req.body.model
-        : DEFAULT_MODEL;
+        : getModelRuntimeConfig().model;
 
     const result = await runWorkflow(input, systemPrompt, model);
     res.json(result);

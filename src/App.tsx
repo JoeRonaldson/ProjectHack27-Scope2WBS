@@ -71,6 +71,7 @@ function App() {
   const [input, setInput] = useState("");
   const [systemPrompt, setSystemPrompt] = useState(DEFAULT_PROMPT);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [settingsTab, setSettingsTab] = useState<"systemPrompt" | "skills">("systemPrompt");
   const [loading, setLoading] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const messageStreamRef = useRef<HTMLDivElement | null>(null);
@@ -184,6 +185,11 @@ function App() {
     setSettingsOpen(false);
   };
 
+  const openSettings = (tab: "systemPrompt" | "skills" = "systemPrompt") => {
+    setSettingsTab(tab);
+    setSettingsOpen(true);
+  };
+
   const stopSettingsClose = (event: MouseEvent<HTMLElement>) => {
     event.stopPropagation();
   };
@@ -262,6 +268,19 @@ function App() {
           </span>
           <span>Chat</span>
         </button>
+        <button
+          type="button"
+          className="railItem railItemBottom"
+          aria-label="Open settings"
+          onClick={() => openSettings("systemPrompt")}
+        >
+          <span className="railGlyph" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M19.14 12.94c.03-.3.05-.62.05-.94s-.02-.64-.05-.94l2.03-1.58a.49.49 0 0 0 .12-.63l-1.92-3.32a.49.49 0 0 0-.59-.22l-2.39.96a7.22 7.22 0 0 0-1.63-.94l-.36-2.54a.48.48 0 0 0-.48-.4h-3.84a.48.48 0 0 0-.48.4l-.36 2.54a7.7 7.7 0 0 0-1.63.94l-2.39-.96a.48.48 0 0 0-.59.22L2.34 8.85a.48.48 0 0 0 .12.63l2.03 1.58a7.73 7.73 0 0 0-.05.94c0 .32.02.64.05.94l-2.03 1.58a.49.49 0 0 0-.12.63l1.92 3.32a.49.49 0 0 0 .59.22l2.39-.96c.5.39 1.05.71 1.63.94l.36 2.54a.48.48 0 0 0 .48.4h3.84a.48.48 0 0 0 .48-.4l.36-2.54c.58-.23 1.13-.55 1.63-.94l2.39.96a.49.49 0 0 0 .59-.22l1.92-3.32a.49.49 0 0 0-.12-.63l-2.03-1.58zM12 15.5A3.5 3.5 0 1 1 12 8.5a3.5 3.5 0 0 1 0 7z" />
+            </svg>
+          </span>
+          <span>Settings</span>
+        </button>
         </aside>
 
         <aside className="teamsSidebar">
@@ -332,21 +351,6 @@ function App() {
                 </svg>
               </span>
               <span>Drafts</span>
-            </button>
-          </section>
-
-          <section className="sidebarSection">
-            <button type="button" className="sectionTitle">
-              <span className="chevron" aria-hidden="true">
-                <svg viewBox="0 0 24 24">
-                  <path d="M8.2 6.8L13.4 12l-5.2 5.2 1.4 1.4 6.6-6.6-6.6-6.6z" />
-                </svg>
-              </span>
-              <span>Favourites</span>
-            </button>
-            <button type="button" className="sidebarListItem indented">
-              <span className="userDot">J</span>
-              <span>joe ronaldson (You)</span>
             </button>
           </section>
 
@@ -437,7 +441,6 @@ function App() {
               type="button"
               className="channelActionIcon"
               aria-label="Open chat details"
-              onClick={() => setSettingsOpen(true)}
             >
               <svg viewBox="0 0 24 24" aria-hidden="true">
                 <path d="M4.5 5.5A1.5 1.5 0 0 1 6 4h12a1.5 1.5 0 0 1 1.5 1.5v9A1.5 1.5 0 0 1 18 16h-6l-4.5 3V16H6a1.5 1.5 0 0 1-1.5-1.5v-9zM6 5.5v9h3v1.7l2.6-1.7H18v-9H6z" />
@@ -582,20 +585,53 @@ function App() {
                 Close
               </button>
             </header>
-            <p className="settingsHint">
-              Configure workflow defaults used for every run. System prompt is managed only from this panel.
-            </p>
-            <label htmlFor="settings-prompt">System prompt</label>
-            <textarea
-              id="settings-prompt"
-              value={systemPrompt}
-              onChange={(event) => setSystemPrompt(event.target.value)}
-              rows={14}
-            />
+            <div className="settingsLayout">
+              <nav className="settingsNav" aria-label="Settings sections">
+                <button
+                  type="button"
+                  className={`settingsNavButton ${settingsTab === "systemPrompt" ? "active" : ""}`}
+                  onClick={() => setSettingsTab("systemPrompt")}
+                >
+                  System prompt
+                </button>
+                <button
+                  type="button"
+                  className={`settingsNavButton ${settingsTab === "skills" ? "active" : ""}`}
+                  onClick={() => setSettingsTab("skills")}
+                >
+                  Skills
+                </button>
+              </nav>
+
+              <section className="settingsContent">
+                {settingsTab === "systemPrompt" ? (
+                  <>
+                    <p className="settingsHint">
+                      Configure workflow defaults used for every run. This prompt will be used for each request.
+                    </p>
+                    <label htmlFor="settings-prompt">System prompt</label>
+                    <textarea
+                      id="settings-prompt"
+                      value={systemPrompt}
+                      onChange={(event) => setSystemPrompt(event.target.value)}
+                      rows={14}
+                    />
+                  </>
+                ) : (
+                  <div className="settingsSection">
+                    <p className="settingsHint">
+                      Skills settings will live here. Use this tab to manage skill behavior for your workflow.
+                    </p>
+                  </div>
+                )}
+              </section>
+            </div>
             <div className="settingsActions">
-              <button type="button" className="secondaryButton" onClick={() => setSystemPrompt(DEFAULT_PROMPT)}>
-                Reset prompt
-              </button>
+              {settingsTab === "systemPrompt" ? (
+                <button type="button" className="secondaryButton" onClick={() => setSystemPrompt(DEFAULT_PROMPT)}>
+                  Reset prompt
+                </button>
+              ) : null}
               <button type="button" className="primaryButton" onClick={closeSettings}>
                 Save and close
               </button>

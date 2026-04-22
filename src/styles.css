@@ -234,6 +234,10 @@ textarea {
   background: #ebebeb;
 }
 
+.railItemBottom {
+  margin-top: auto;
+}
+
 .teamsSidebar {
   background: #f5f5f5;
   border-right: 1px solid #e6e6e6;
@@ -837,11 +841,53 @@ pre {
 }
 
 .settingsPanel {
-  width: min(540px, 100%);
+  width: min(1200px, 92vw);
   height: 100%;
   background: #ffffff;
   border-left: 1px solid #edebe9;
   padding: 20px;
+  display: flex;
+  flex-direction: column;
+}
+
+.settingsLayout {
+  margin-top: 10px;
+  display: grid;
+  grid-template-columns: 150px minmax(0, 1fr);
+  gap: 16px;
+  min-height: 0;
+  flex: 1;
+}
+
+.settingsNav {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.settingsNavButton {
+  border: 1px solid transparent;
+  background: transparent;
+  color: #3b3a39;
+  font-size: 13px;
+  font-weight: 600;
+  text-align: left;
+  border-radius: 6px;
+  padding: 8px 10px;
+  cursor: pointer;
+}
+
+.settingsNavButton:hover {
+  background: #f5f4f3;
+}
+
+.settingsNavButton.active {
+  background: #f3f2f1;
+  border-color: #e1dfdd;
+}
+
+.settingsContent {
+  min-width: 0;
   display: flex;
   flex-direction: column;
 }
@@ -867,7 +913,7 @@ pre {
 }
 
 .settingsHint {
-  margin: 10px 0 12px;
+  margin: 0 0 12px;
   color: #605e5c;
   font-size: 13px;
 }
@@ -880,11 +926,18 @@ pre {
 
 .settingsPanel textarea {
   width: 100%;
-  min-height: 280px;
+  min-height: 300px;
   border: 1px solid #d2d0ce;
   border-radius: 5px;
   padding: 9px;
   resize: vertical;
+}
+
+.settingsSection {
+  border: 1px dashed #d2d0ce;
+  border-radius: 8px;
+  padding: 12px;
+  background: #faf9f8;
 }
 
 .settingsActions {
