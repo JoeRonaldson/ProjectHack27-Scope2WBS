@@ -17,6 +17,8 @@ const port = Number(process.env.API_PORT ?? process.env.PORT ?? 3000);
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const clientDistPath = path.resolve(__dirname, "../dist-client");
+const pythonChartServiceUrl =
+  process.env.PYTHON_CHART_SERVICE_URL ?? "https://replace-with-python-chart-service-url";
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: {
@@ -77,6 +79,45 @@ app.post("/api/upload-document", upload.single("document"), async (req, res) => 
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unable to process uploaded document.";
+    res.status(400).json({ error: message });
+  }
+});
+
+app.post("/api/python-chart", async (req, res) => {
+  try {
+    const text = typeof req.body?.text === "string" ? req.body.text.trim() : "";
+    if (!text) {
+      res.status(400).json({ error: "Input text is required." });
+      return;
+    }
+
+    if (pythonChartServiceUrl.includes("replace-with-python-chart-service-url")) {
+      res.status(501).json({
+        error: "Python chart service URL is not configured yet. Set PYTHON_CHART_SERVICE_URL."
+      });
+      return;
+    }
+
+    const pythonResponse = await fetch(pythonChartServiceUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ text })
+    });
+    const payload = (await pythonResponse.json()) as Record<string, unknown>;
+    if (!pythonResponse.ok) {
+      const message =
+        typeof payload.error === "string"
+          ? payload.error
+          : `Python chart service returned status ${pythonResponse.status}.`;
+      throw new Error(message);
+    }
+
+    res.json(payload);
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : "Unable to generate chart data from Python service.";
     res.status(400).json({ error: message });
   }
 });
