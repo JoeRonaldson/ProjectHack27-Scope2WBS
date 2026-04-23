@@ -1,4 +1,4 @@
-import { FormEvent, KeyboardEvent, MouseEvent, useEffect, useRef, useState } from "react";
+import { ChangeEvent, FormEvent, KeyboardEvent, MouseEvent, useEffect, useRef, useState } from "react";
 import scope2wbsLogo from "./assets/scope2wbs-full-logo.svg";
 import teamsTopbarLogo from "../Microsoft_Teams-Logo.wine.png";
 
@@ -99,8 +99,11 @@ function App() {
   const [selectedSkill, setSelectedSkill] = useState<SkillDetail | null>(null);
   const [skillDetailError, setSkillDetailError] = useState<string | null>(null);
   const [loadingSkillId, setLoadingSkillId] = useState<string | null>(null);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const [uploadedFileName, setUploadedFileName] = useState<string | null>(null);
   const messageStreamRef = useRef<HTMLDivElement | null>(null);
   const composerInputRef = useRef<HTMLTextAreaElement | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
     const messageStream = messageStreamRef.current;
@@ -155,9 +158,8 @@ function App() {
     return `https://mermaid.ink/img/${encodedMermaid}`;
   };
 
-  const handleSubmit = async (event: FormEvent) => {
-    event.preventDefault();
-    const trimmedInput = input.trim();
+  const submitInput = async (text: string, userMessageText?: string) => {
+    const trimmedInput = text.trim();
     if (!trimmedInput) {
       return;
     }
@@ -176,7 +178,7 @@ function App() {
       {
         id: userMessageId,
         role: "user",
-        text: trimmedInput
+        text: userMessageText ?? trimmedInput
       },
       {
         id: assistantMessageId,
@@ -186,6 +188,7 @@ function App() {
       }
     ]);
     setInput("");
+    setUploadError(null);
 
     try {
       const response = await fetch("/api/workflow", {
@@ -285,6 +288,64 @@ function App() {
       );
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleSubmit = async (event: FormEvent) => {
+    event.preventDefault();
+    await submitInput(input);
+  };
+
+  const handleFileUpload = async (event: ChangeEvent<HTMLInputElement>) => {
+    setUploadError(null);
+    const file = event.target.files?.[0];
+    if (!file) {
+      return;
+    }
+
+    const allowedTypes = [
+      "text/plain",
+      "text/markdown",
+      "text/csv",
+      "application/json",
+      "application/pdf",
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+    ];
+    const allowedExtensions = [".txt", ".md", ".markdown", ".csv", ".json", ".pdf", ".docx"];
+    const fileName = file.name || "uploaded document";
+    const hasValidType = allowedTypes.includes(file.type);
+    const hasValidExtension = allowedExtensions.some((ext) => fileName.toLowerCase().endsWith(ext));
+
+    if (!hasValidType && !hasValidExtension) {
+      setUploadError("Please upload a supported document (.txt, .md, .csv, .json, .pdf, .docx).");
+      event.target.value = "";
+      return;
+    }
+
+    try {
+      const formData = new FormData();
+      formData.append("document", file);
+      const response = await fetch("/api/upload-document", {
+        method: "POST",
+        body: formData
+      });
+      const payload = (await response.json()) as {
+        content?: string;
+        fileName?: string;
+        error?: string;
+      };
+      if (!response.ok || !payload.content) {
+        throw new Error(payload.error ?? "Unable to upload the selected document.");
+      }
+      setUploadedFileName(fileName);
+      await submitInput(payload.content, `Uploaded document: ${payload.fileName ?? fileName}`);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Unable to upload the selected file.";
+      setUploadError(`Upload failed: ${message}`);
+    } finally {
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
     }
   };
 
@@ -668,7 +729,28 @@ function App() {
                 rows={1}
                 placeholder="Message in Team 2A - Scope2WBS"
               />
+              {uploadedFileName ? (
+                <p className="uploadInfo">Uploaded document: {uploadedFileName}</p>
+              ) : null}
+              {uploadError ? <p className="error uploadError">{uploadError}</p> : null}
               <div className="composerActions">
+                <button
+                  type="button"
+                  className="composerIconButton"
+                  aria-label="Upload document"
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M12 3v10m0 0l-4-4m4 4l4-4M4 17h16" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </button>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept=".txt,.md,.markdown,.csv,.json,.pdf,.docx,text/plain,text/markdown,text/csv,application/json,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                  onChange={handleFileUpload}
+                  style={{ display: "none" }}
+                />
                 <button type="button" className="composerIconButton" aria-label="Format">
                   <svg viewBox="0 0 24 24" aria-hidden="true">
                     <path d="M14.5 3l6.5 6.5-8.8 8.8H5.7v-6.5L14.5 3zm.1 2.8l-7.4 7.4v2.3h2.3l7.4-7.4-2.3-2.3zm-7.2 12h11v1.9h-11v-1.9z" />

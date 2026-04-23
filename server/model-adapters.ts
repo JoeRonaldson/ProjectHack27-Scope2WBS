@@ -1,6 +1,8 @@
 import OpenAI from "openai";
 import type { ModelRuntimeConfig } from "./model-config.js";
 
+// Note: Ensure 'openai' package is installed: npm install openai
+
 export type GenerateTextInput = {
   input: string;
   instructions: string;

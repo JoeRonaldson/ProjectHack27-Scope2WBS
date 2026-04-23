@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "concurrently \"npm:dev:server\" \"npm:dev:client\"",
-    "dev:server": "API_PORT=3001 tsx watch server/index.ts",
+    "dev:server": "cross-env API_PORT=3001 tsx watch server/index.ts",
     "dev:client": "vite --port 3000 --strictPort",
     "build": "npm run build:client && npm run build:server",
     "build:client": "vite build",
@@ -16,18 +16,23 @@
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
     "express": "^5.1.0",
-    "openai": "^6.4.0",
+    "mammoth": "^1.12.0",
+    "multer": "^2.1.1",
+    "openai": "^6.34.0",
+    "pdfjs-dist": "^5.6.205",
     "react": "^19.2.0",
     "react-dom": "^19.2.0"
   },
   "devDependencies": {
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.3",
+    "@types/multer": "^2.1.0",
     "@types/node": "^24.9.0",
     "@types/react": "^19.2.2",
     "@types/react-dom": "^19.2.2",
     "@vitejs/plugin-react": "^5.1.0",
     "concurrently": "^9.2.1",
+    "cross-env": "^10.1.0",
     "tsx": "^4.20.6",
     "typescript": "^5.9.3",
     "vite": "^7.1.10"
