@@ -397,7 +397,7 @@ function App() {
         <button
           type="button"
           className="railItem railItemBottom"
-          aria-label="Open settings"
+          aria-label="Open agent settings"
           onClick={() => openSettings("systemPrompt")}
         >
           <span className="railGlyph" aria-hidden="true">
@@ -405,7 +405,7 @@ function App() {
               <path d="M19.14 12.94c.03-.3.05-.62.05-.94s-.02-.64-.05-.94l2.03-1.58a.49.49 0 0 0 .12-.63l-1.92-3.32a.49.49 0 0 0-.59-.22l-2.39.96a7.22 7.22 0 0 0-1.63-.94l-.36-2.54a.48.48 0 0 0-.48-.4h-3.84a.48.48 0 0 0-.48.4l-.36 2.54a7.7 7.7 0 0 0-1.63.94l-2.39-.96a.48.48 0 0 0-.59.22L2.34 8.85a.48.48 0 0 0 .12.63l2.03 1.58a7.73 7.73 0 0 0-.05.94c0 .32.02.64.05.94l-2.03 1.58a.49.49 0 0 0-.12.63l1.92 3.32a.49.49 0 0 0 .59.22l2.39-.96c.5.39 1.05.71 1.63.94l.36 2.54a.48.48 0 0 0 .48.4h3.84a.48.48 0 0 0 .48-.4l.36-2.54c.58-.23 1.13-.55 1.63-.94l2.39.96a.49.49 0 0 0 .59-.22l1.92-3.32a.49.49 0 0 0-.12-.63l-2.03-1.58zM12 15.5A3.5 3.5 0 1 1 12 8.5a3.5 3.5 0 0 1 0 7z" />
             </svg>
           </span>
-          <span>Settings</span>
+          <span>Agent Settings</span>
         </button>
         </aside>
 
@@ -560,7 +560,10 @@ function App() {
               <div className="bubble">
                 <p className="authorLine">{ASSISTANT_NAME}</p>
                 <p>
-                  Send me the Project Scope documents and I will create a WBS for you.
+                  Hi there!<br />
+                  I am Scope2WBS, your helpful AI assistant.<br />
+                  <br />
+                  Paste in your Project Scope document(s) and I will create a WBS for you 😁
                 </p>
               </div>
             </article>
@@ -701,7 +704,7 @@ function App() {
         <div className="settingsOverlay" onClick={closeSettings}>
           <section className="settingsPanel" onClick={stopSettingsClose} aria-label="Settings panel">
             <header className="settingsHeader">
-              <h2>Settings</h2>
+              <h2>Agent Settings</h2>
               <button type="button" className="closeButton" onClick={closeSettings}>
                 Close
               </button>
