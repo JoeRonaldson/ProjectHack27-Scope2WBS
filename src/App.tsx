@@ -145,6 +145,64 @@ function App() {
     return ["WBS Level,WBS Code,WBS Name", ...csvRows].join("\n");
   };
 
+  const escapeMermaidLabel = (value: string) =>
+    value
+      .replace(/\\/g, "\\\\")
+      .replace(/"/g, '\\"')
+      .replace(/[\r\n]+/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+
+  const buildRenderableMermaid = (rows: WbsRow[]) => {
+    if (!rows.length) {
+      return null;
+    }
+
+    const codeSegments = (code: string) => code.split(".").map((segment) => Number.parseInt(segment, 10));
+    const sortedRows = [...rows].sort((left, right) => {
+      const leftSegments = codeSegments(left.code);
+      const rightSegments = codeSegments(right.code);
+      const maxLength = Math.max(leftSegments.length, rightSegments.length);
+      for (let index = 0; index < maxLength; index += 1) {
+        const leftPart = leftSegments[index] ?? 0;
+        const rightPart = rightSegments[index] ?? 0;
+        if (leftPart !== rightPart) {
+          return leftPart - rightPart;
+        }
+      }
+      return 0;
+    });
+
+    const nodeIdForCode = new Map<string, string>();
+    sortedRows.forEach((row) => {
+      nodeIdForCode.set(row.code, `N${row.code.replace(/\./g, "_")}`);
+    });
+
+    const lines: string[] = ["flowchart TD"];
+    sortedRows.forEach((row) => {
+      const nodeId = nodeIdForCode.get(row.code);
+      if (!nodeId) {
+        return;
+      }
+      const label = escapeMermaidLabel(`${row.code} ${row.name}`);
+      lines.push(`  ${nodeId}["${label}"]`);
+    });
+
+    sortedRows.forEach((row) => {
+      const nodeId = nodeIdForCode.get(row.code);
+      const parentCode = row.code.includes(".") ? row.code.slice(0, row.code.lastIndexOf(".")) : null;
+      if (!nodeId || !parentCode) {
+        return;
+      }
+      const parentId = nodeIdForCode.get(parentCode);
+      if (parentId) {
+        lines.push(`  ${parentId} --> ${nodeId}`);
+      }
+    });
+
+    return lines.join("\n");
+  };
+
   const createMermaidRenderLink = (mermaidCode: string) => {
     const bytes = new TextEncoder().encode(mermaidCode);
     let binary = "";
@@ -632,8 +690,9 @@ function App() {
                   return null;
                 }
                 const csvData = createCsvData(result.wbsRows);
-                const mermaidLink = result.mermaidCode ? createMermaidRenderLink(result.mermaidCode) : null;
-                const hasWbsOutput = Boolean(result.mermaidCode);
+                const renderableMermaid = buildRenderableMermaid(result.wbsRows);
+                const mermaidLink = renderableMermaid ? createMermaidRenderLink(renderableMermaid) : null;
+                const hasWbsOutput = Boolean(renderableMermaid);
                 return (
                   <article key={message.id} className="chatMessage left">
                     <AssistantAvatar />
