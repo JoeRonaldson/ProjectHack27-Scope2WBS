@@ -641,17 +641,35 @@ function App() {
                       <p className="authorLine">{ASSISTANT_NAME}</p>
                       {result.assistantText ? <p>{result.assistantText}</p> : null}
                       {mermaidLink ? (
-                        <>
-                          <a href={mermaidLink} target="_blank" rel="noreferrer">
-                            Open rendered Mermaid chart
+                        <div className="wbsOutputLinks">
+                          <a
+                            className="wbsOutputCard"
+                            href={mermaidLink}
+                            target="_blank"
+                            rel="noreferrer"
+                          >
+                            <span className="wbsOutputBadge" aria-hidden="true">
+                              IMG
+                            </span>
+                            <span className="wbsOutputMeta">
+                              <span className="wbsOutputTitle">Mermaid Diagram</span>
+                              <span className="wbsOutputDescription">Open rendered chart</span>
+                            </span>
                           </a>
                           <a
+                            className="wbsOutputCard csv"
                             href={`data:text/csv;charset=utf-8,${encodeURIComponent(csvData)}`}
                             download="output.csv"
                           >
-                            Export CSV
+                            <span className="wbsOutputBadge" aria-hidden="true">
+                              XLS
+                            </span>
+                            <span className="wbsOutputMeta">
+                              <span className="wbsOutputTitle">Excel Export</span>
+                              <span className="wbsOutputDescription">Download CSV file</span>
+                            </span>
                           </a>
-                        </>
+                        </div>
                       ) : null}
                       {!hasWbsOutput && result.mode === "wbs" ? <p>No Mermaid diagram detected.</p> : null}
                     </div>

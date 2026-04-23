@@ -774,6 +774,72 @@ textarea {
   color: #4f52b2;
 }
 
+.wbsOutputLinks {
+  margin-top: 8px;
+  display: grid;
+  gap: 8px;
+}
+
+.wbsOutputCard {
+  display: flex !important;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid #d2d0ce;
+  border-radius: 8px;
+  background: #ffffff;
+  padding: 8px 10px;
+  color: #252423 !important;
+  text-decoration: none;
+  margin-bottom: 0 !important;
+}
+
+.wbsOutputCard:hover {
+  border-color: #a19f9d;
+  background: #faf9f8;
+}
+
+.wbsOutputCard:active {
+  background: #f3f2f1;
+}
+
+.wbsOutputBadge {
+  width: 34px;
+  height: 34px;
+  border-radius: 6px;
+  background: #eef2ff;
+  border: 1px solid #c8d1ff;
+  color: #3f46a8;
+  font-size: 11px;
+  font-weight: 700;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+
+.wbsOutputCard.csv .wbsOutputBadge {
+  background: #e8f7ef;
+  border-color: #9ad4b0;
+  color: #1e7b45;
+}
+
+.wbsOutputMeta {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.wbsOutputTitle {
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.wbsOutputDescription {
+  font-size: 12px;
+  color: #605e5c;
+  line-height: 1.2;
+}
+
 .error {
   color: #a4262c;
   font-size: 13px;
