@@ -1,4 +1,5 @@
 import { ChangeEvent, FormEvent, KeyboardEvent, MouseEvent, useEffect, useRef, useState } from "react";
+import mermaid from "mermaid";
 import scope2wbsLogo from "./assets/scope2wbs-full-logo.svg";
 import teamsTopbarLogo from "../Microsoft_Teams-Logo.wine.png";
 
@@ -6,6 +7,16 @@ type WbsRow = {
   level: number;
   code: string;
   name: string;
+};
+
+type ProjectNode = {
+  id: string;
+  label: string;
+  children: ProjectNode[];
+};
+
+type ProjectTree = {
+  nodes: ProjectNode[];
 };
 
 type WorkflowStage = "initial" | "awaiting-clarification" | "wbs-ready";
@@ -76,6 +87,7 @@ Rules:
 
 
 const ASSISTANT_NAME = "Scope2WBS";
+const PYTHON_BACKEND_URL = import.meta.env.VITE_PYTHON_BACKEND_URL ?? "http://localhost:8000";
 
 function AssistantAvatar() {
   return (
@@ -85,11 +97,125 @@ function AssistantAvatar() {
   );
 }
 
+function buildProjectFromWbsRows(rows: WbsRow[]): ProjectTree {
+  const sortedRows = [...rows].sort((left, right) => left.code.localeCompare(right.code));
+  const nodeMap = new Map<string, ProjectNode>();
+  const rootNodes: ProjectNode[] = [];
+
+  for (const row of sortedRows) {
+    nodeMap.set(row.code, {
+      id: row.code,
+      label: row.name,
+      children: []
+    });
+  }
+
+  for (const row of sortedRows) {
+    const node = nodeMap.get(row.code);
+    if (!node) {
+      continue;
+    }
+    const parentCode = row.code.includes(".") ? row.code.split(".").slice(0, -1).join(".") : "";
+    const parentNode = parentCode ? nodeMap.get(parentCode) : undefined;
+    if (parentNode) {
+      parentNode.children.push(node);
+    } else {
+      rootNodes.push(node);
+    }
+  }
+
+  return { nodes: rootNodes };
+}
+
+function buildMermaidDefinition(project: ProjectTree): string {
+  let mermaidText = "graph TD\nRoot[\"WBS\"]\n";
+  let counter = 0;
+
+  const walk = (nodes: ProjectNode[], parent = "Root") => {
+    nodes.forEach((node) => {
+      counter += 1;
+      const id = `N${counter}`;
+      const safeLabel = node.label.replace(/"/g, '\\"');
+      mermaidText += `${parent} --> ${id}["${safeLabel}"]\n`;
+      if (node.children.length) {
+        walk(node.children, id);
+      }
+    });
+  };
+
+  walk(project.nodes);
+  return mermaidText;
+}
+
+function MermaidChart({ project }: { project: ProjectTree }) {
+  const chartRef = useRef<HTMLDivElement | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const chartElement = chartRef.current;
+    if (!chartElement) {
+      return;
+    }
+
+    const chartId = `generatedChart-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+    const mermaidDefinition = buildMermaidDefinition(project);
+    let cancelled = false;
+
+    mermaid
+      .render(chartId, mermaidDefinition)
+      .then(({ svg }) => {
+        if (!cancelled && chartRef.current) {
+          chartRef.current.innerHTML = svg;
+          setError(null);
+        }
+      })
+      .catch((renderError) => {
+        console.error(renderError);
+        if (!cancelled) {
+          setError("Chart error");
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [project]);
+
+  const downloadChart = () => {
+    const svgElement = chartRef.current?.querySelector("svg");
+    if (!svgElement) {
+      return;
+    }
+
+    const svgBlob = new Blob([svgElement.outerHTML], { type: "image/svg+xml;charset=utf-8" });
+    const downloadUrl = URL.createObjectURL(svgBlob);
+    const anchor = document.createElement("a");
+    anchor.href = downloadUrl;
+    anchor.download = "wbs-chart.svg";
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+    URL.revokeObjectURL(downloadUrl);
+  };
+
+  return (
+    <div className="bg-white p-4 rounded shadow">
+      <div ref={chartRef} />
+      {error ? <p className="error">{error}</p> : null}
+      <div className="mt-4">
+        <button type="button" onClick={downloadChart} className="placeholderSkillButton">
+          Download Chart
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function App() {
   const [input, setInput] = useState("");
   const [systemPrompt, setSystemPrompt] = useState(DEFAULT_PROMPT);
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const [settingsTab, setSettingsTab] = useState<"systemPrompt" | "skills">("systemPrompt");
+  const [settingsTab, setSettingsTab] = useState<"systemPrompt" | "skills" | "rag">("systemPrompt");
   const [loading, setLoading] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [workflowStage, setWorkflowStage] = useState<WorkflowStage>("initial");
@@ -137,6 +263,14 @@ function App() {
     };
   }, []);
 
+  useEffect(() => {
+    mermaid.initialize({
+      startOnLoad: false,
+      securityLevel: "loose"
+    });
+  }, []);
+
+
   const createCsvData = (rows: WbsRow[]) => {
     if (!rows.length) {
       return "WBS Level,WBS Code,WBS Name\n";
@@ -146,16 +280,6 @@ function App() {
       return `${row.level},${row.code},${escapedName}`;
     });
     return ["WBS Level,WBS Code,WBS Name", ...csvRows].join("\n");
-  };
-
-  const createMermaidRenderLink = (mermaidCode: string) => {
-    const bytes = new TextEncoder().encode(mermaidCode);
-    let binary = "";
-    bytes.forEach((byte) => {
-      binary += String.fromCharCode(byte);
-    });
-    const encodedMermaid = btoa(binary);
-    return `https://mermaid.ink/img/${encodedMermaid}`;
   };
 
   const submitInput = async (text: string, userMessageText?: string) => {
@@ -325,20 +449,49 @@ function App() {
     try {
       const formData = new FormData();
       formData.append("document", file);
-      const response = await fetch("/api/upload-document", {
+      const response = await fetch(`${PYTHON_BACKEND_URL}/generate-wbs-from-upload`, {
         method: "POST",
         body: formData
       });
       const payload = (await response.json()) as {
-        content?: string;
+        scopeText?: string;
         fileName?: string;
+        wbs?: WbsRow[];
         error?: string;
+        detail?: string;
       };
-      if (!response.ok || !payload.content) {
-        throw new Error(payload.error ?? "Unable to upload the selected document.");
+      if (!response.ok || !Array.isArray(payload.wbs)) {
+        throw new Error(payload.detail ?? payload.error ?? "Unable to generate WBS from uploaded document.");
       }
       setUploadedFileName(fileName);
-      await submitInput(payload.content, `Uploaded document: ${payload.fileName ?? fileName}`);
+      const userMessageId = `user-${Date.now()}`;
+      const assistantMessageId = `assistant-${Date.now()}`;
+      setMessages((previous) => [
+        ...previous,
+        {
+          id: userMessageId,
+          role: "user",
+          text: `Uploaded document: ${payload.fileName ?? fileName}`
+        },
+        {
+          id: assistantMessageId,
+          role: "assistant",
+          result: {
+            mode: "wbs",
+            assistantText: "WBS generated from uploaded document via Python backend.",
+            outputText: "",
+            mermaidCode: null,
+            wbsRows: payload.wbs ?? [],
+            skillsUsed: [],
+            nextStage: "wbs-ready",
+            initialScope: payload.scopeText ?? "",
+            latestMermaid: null
+          }
+        }
+      ]);
+      setWorkflowStage("wbs-ready");
+      setInitialScope(payload.scopeText ?? "");
+      setLatestMermaid(null);
     } catch (error) {
       const message = error instanceof Error ? error.message : "Unable to upload the selected file.";
       setUploadError(`Upload failed: ${message}`);
@@ -358,7 +511,7 @@ function App() {
     setSkillDetailError(null);
   };
 
-  const openSettings = (tab: "systemPrompt" | "skills" = "systemPrompt") => {
+  const openSettings = (tab: "systemPrompt" | "skills" | "rag" = "systemPrompt") => {
     setSettingsTab(tab);
     setSettingsOpen(true);
   };
@@ -690,19 +843,17 @@ function App() {
                   return null;
                 }
                 const csvData = createCsvData(result.wbsRows);
-                const mermaidLink = result.mermaidCode ? createMermaidRenderLink(result.mermaidCode) : null;
-                const hasWbsOutput = Boolean(result.mermaidCode);
+                const project = result.wbsRows.length ? buildProjectFromWbsRows(result.wbsRows) : null;
+                const hasWbsOutput = Boolean(project);
                 return (
                   <article key={message.id} className="chatMessage left">
                     <AssistantAvatar />
                     <div className="bubble">
                       <p className="authorLine">{ASSISTANT_NAME}</p>
                       {result.assistantText ? <p>{result.assistantText}</p> : null}
-                      {mermaidLink ? (
+                      {project ? (
                         <>
-                          <a href={mermaidLink} target="_blank" rel="noreferrer">
-                            Open rendered Mermaid chart
-                          </a>
+                          <MermaidChart project={project} />
                           <a
                             href={`data:text/csv;charset=utf-8,${encodeURIComponent(csvData)}`}
                             download="output.csv"
@@ -804,6 +955,13 @@ function App() {
                 >
                   Skills
                 </button>
+                <button
+                  type="button"
+                  className={`settingsNavButton ${settingsTab === "rag" ? "active" : ""}`}
+                  onClick={() => setSettingsTab("rag")}
+                >
+                  RAG
+                </button>
               </nav>
 
               <section className="settingsContent">
@@ -820,7 +978,7 @@ function App() {
                       rows={14}
                     />
                   </>
-                ) : (
+                ) : settingsTab === "skills" ? (
                   <div className="settingsSection">
                     <p className="settingsHint">
                       Create a skill that captures the SOP for developing Work Break Down Structures for each project type.
@@ -851,6 +1009,11 @@ function App() {
                     ) : (
                       <p className="settingsHint">No skills loaded yet.</p>
                     )}
+                  </div>
+                ) : (
+                  <div className="settingsSection">
+                    <p className="settingsHint">Future feature: connect to the company RAG database.</p>
+                    <button type="button" className="placeholderSkillButton">Connect</button>
                   </div>
                 )}
               </section>
